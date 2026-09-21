@@ -1,7 +1,7 @@
 # K&S Pulpwerk · 小老鼠造纸坊
 
 Kirkland & Sunshine 的内页排版器。K&S Coverwerk 的姊妹站。
-纯前端，单文件，无后端，无构建步骤。
+
 
 ## 功能
 
@@ -38,13 +38,6 @@ Kirkland & Sunshine 的内页排版器。K&S Coverwerk 的姊妹站。
 
 打印窗口里：目标选“另存为 PDF”，边距选“无”，勾选“背景图形”。
 建议用 Chrome 或 Edge。
-
-## 部署到 GitHub Pages
-
-1. 新建公开仓库 `ks-pulpwerk`。
-2. 上传 `index.html` 和 `README.md`。文件名必须正好是 `index.html`。
-3. Settings → Pages → Branch 选 `main` / `/ (root)` → Save。
-4. 地址：`https://<用户名>.github.io/ks-pulpwerk/`
 
 ## 示例文本
 
