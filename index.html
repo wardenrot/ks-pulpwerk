@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="K&amp;S Pulpwerk · 小老鼠造纸坊：同人本内页排版器。横排 / 竖排、自动分页、目录、页眉页码、扉页与版权页，矢量 PDF 导出。">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>K&amp;S Pulpwerk</title>
+<style>
+:root{
+  --bg:#E7E5DF; --panel:#F3F2ED; --stage:#D9D7CF; --ink:#14151A; --mut:#62646E;
+  --rule:#14151A; --soft:#C9C7BE; --field:#FFFFFF; --shadow:#14151A;
+  --red:#E5341F; --yel:#F5B916; --blu:#2450DB; --grid:rgba(20,21,26,.09);
+  --ui:"Jost","Noto Sans SC",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0D11; --panel:#14161C; --stage:#08090C; --ink:#ECE9E1; --mut:#8D909B;
+    --rule:#ECE9E1; --soft:#2A2D38; --field:#0C0D11; --shadow:#000;
+    --blu:#4B74FF; --grid:rgba(236,233,225,.07);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0D11; --panel:#14161C; --stage:#08090C; --ink:#ECE9E1; --mut:#8D909B;
+  --rule:#ECE9E1; --soft:#2A2D38; --field:#0C0D11; --shadow:#000;
+  --blu:#4B74FF; --grid:rgba(236,233,225,.07);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:14px/1.45 var(--ui)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blu);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:10px 16px;border-bottom:3px solid var(--rule);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:58px;height:35px;flex:none;display:block}
+.brand h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.1em;line-height:1;text-transform:uppercase}
+.brand h1 span{color:var(--red)}
+.brand h1 small{display:block;margin-top:5px;font-size:11px;font-weight:500;letter-spacing:.2em;color:var(--mut)}
+.readout{display:flex;flex-wrap:wrap;gap:4px 18px;font:12px/1.3 var(--mono);color:var(--mut);font-variant-numeric:tabular-nums}
+.readout b{color:var(--ink);font-weight:500}
+.actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.btn{border:2px solid var(--rule);background:var(--panel);padding:5px 12px;font-weight:700;font-size:12px;letter-spacing:.08em;box-shadow:3px 3px 0 var(--shadow);transition:transform .08s,box-shadow .08s;text-decoration:none;color:var(--ink);display:inline-block}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--shadow)}
+.btn.red{background:var(--red);color:#fff}
+.btn.yel{background:var(--yel);color:#14151A}
+.btn.blu{background:var(--blu);color:#fff}
+.btn.flat{box-shadow:none;border-width:1.5px;font-weight:500;letter-spacing:0;padding:4px 9px}
+.btn.flat:hover{transform:none;background:var(--ink);color:var(--panel)}
+.btn.flat:active{transform:none}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:332px minmax(0,1fr) 312px}
+aside{overflow:auto;padding:0 16px 28px;background:var(--panel)}
+#left{border-right:3px solid var(--rule)}
+#right{border-left:3px solid var(--rule)}
+.sec{padding:14px 0 16px;border-bottom:1.5px solid var(--soft);display:flex;flex-direction:column;gap:10px}
+.sec:last-child{border-bottom:0}
+.sec h2{margin:0;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+.sec h2 em{font-style:normal;font-weight:500;letter-spacing:.1em;color:var(--mut);font-size:11px}
+.gl{width:11px;height:11px;flex:none;display:inline-block}
+.gl.c{border-radius:50%;background:var(--red)}
+.gl.s{background:var(--blu)}
+.gl.t{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid var(--yel)}
+.gl.b{background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px)}
+.note{font-size:12px;color:var(--mut);line-height:1.55;margin:0}
+.calc{font:12px/1.6 var(--mono);padding:8px 10px;border:1.5px dashed var(--mut);font-variant-numeric:tabular-nums}
+.calc b{color:var(--red);font-weight:500;font-size:15px}
+
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:2px solid var(--rule)}
+.seg.g2{grid-auto-flow:row;grid-template-columns:1fr 1fr}
+.seg button{border:0;background:transparent;padding:6px 4px;font-size:12px;font-weight:500;border-right:1.5px solid var(--rule);line-height:1.25}
+.seg button:last-child{border-right:0}
+.seg.g2 button:nth-child(2n){border-right:0}
+.seg.g2 button:nth-child(n+3){border-top:1.5px solid var(--rule)}
+.seg button small{display:block;font:10px var(--mono);color:var(--mut)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.seg button[aria-pressed="true"] small{color:var(--panel);opacity:.7}
+
+.row{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:8px;font-size:12px}
+.row>span{color:var(--mut)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pair label,.quad label,.stack label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mut)}
+.stack{display:flex;flex-direction:column;gap:8px}
+input[type=number],input[type=text],select,textarea{width:100%;background:var(--field);border:1.5px solid var(--rule);padding:4px 6px;border-radius:0;font-size:13px;color:var(--ink)}
+input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums}
+textarea{resize:vertical;line-height:1.5}
+#src{min-height:260px;font-size:13px}
+.chk{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px}
+.chk label{display:flex;gap:5px;align-items:center}
+.chk input{accent-color:var(--red)}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+table.syn{width:100%;border-collapse:collapse;font-size:12px}
+table.syn td{padding:3px 4px;border-bottom:1px solid var(--soft);vertical-align:top}
+table.syn td:first-child{font-family:var(--mono);white-space:nowrap;color:var(--ink)}
+table.syn td:last-child{color:var(--mut)}
+.imgs{display:flex;flex-direction:column;border:2px solid var(--rule);background:var(--field)}
+.imgs .it{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:4px 6px;border-bottom:1px solid var(--soft);font-size:12px}
+.imgs .it:last-child{border-bottom:0}
+.imgs img{width:44px;height:44px;object-fit:cover;display:block}
+.imgs code{font-family:var(--mono)}
+.empty{padding:12px 10px;text-align:center;color:var(--mut);font-size:12px}
+
+.stage{position:relative;overflow:hidden;background:var(--stage);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+.deco{position:absolute;pointer-events:none}
+.deco.d1{width:300px;height:300px;border-radius:50%;background:var(--yel);left:-120px;top:-90px}
+.deco.d2{width:240px;height:240px;border-radius:240px 0 0 0;background:var(--red);right:-50px;bottom:-60px}
+.deco.d3{width:200px;height:22px;right:40px;top:80px;background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 12px);transform:rotate(24deg);transform-origin:right}
+.deco.d4{width:120px;height:120px;background:var(--blu);left:60px;bottom:-40px;transform:rotate(14deg)}
+.sbar{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;z-index:3;font:12px var(--mono);background:color-mix(in srgb,var(--stage) 84%,transparent);border-bottom:1.5px solid var(--soft)}
+.sbar .sp{flex:1}
+.sbar .busy{color:var(--red);white-space:nowrap}
+.wrap{position:absolute;inset:40px 0 0 0;overflow:auto;padding:28px 16px 60px;z-index:2}
+#bench{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden}
+
+/* ================= paper ================= */
+.spreads{display:grid;grid-template-columns:repeat(2,max-content);justify-content:center;row-gap:26px}
+.spreads.rtl{direction:rtl}
+.spreads.single{grid-template-columns:max-content}
+.spreads:not(.single)>.sheetbox:first-child{grid-column:2}
+.sheetbox{direction:ltr;width:calc(var(--sw)*var(--z));height:calc(var(--sh)*var(--z));box-shadow:6px 6px 0 var(--shadow);position:relative}
+.spreads.done .sheetbox{content-visibility:auto;contain-intrinsic-size:auto calc(var(--sw)*var(--z)) auto calc(var(--sh)*var(--z))}
+.sheetbox::after{content:attr(data-tag);position:absolute;left:0;bottom:-17px;font:10px var(--mono);color:var(--mut);white-space:nowrap}
+.sheet{position:relative;width:var(--sw);height:var(--sh);transform:scale(var(--z));transform-origin:0 0;background:#fff;color:#111;overflow:hidden;contain:layout style}
+.page{position:absolute;left:var(--bleed);top:var(--bleed);width:var(--pw);height:var(--ph)}
+.pbody{position:absolute;display:flow-root;font-family:var(--fb);font-size:var(--fs);line-height:var(--lhp);text-align:justify;line-break:strict;overflow-wrap:anywhere;color:#111;font-kerning:normal}
+.pbody.v{writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;text-orientation:mixed}
+.pbody p{margin:0;text-indent:var(--ind);margin-block-end:var(--pg)}
+.pbody p.cont{text-indent:0}
+.pbody p.split{text-align-last:justify;margin-block-end:0}
+.pbody b{font-weight:700}
+.pbody .ch{font-family:var(--fh);font-weight:700;font-size:1.5em;line-height:calc(var(--lhp)*2);margin:0;margin-block:calc(var(--lhp)*var(--sink)) calc(var(--lhp)*2);text-align:var(--cha);text-indent:0;text-align-last:auto}
+.pbody.v .ch{padding-inline-start:var(--chpad)}
+.pbody .ch.mid{margin-block-start:calc(var(--lhp)*2)}
+.pbody .sec2{font-family:var(--fh);font-weight:700;font-size:1.15em;line-height:var(--lhp);margin:0;margin-block:var(--lhp);text-indent:0;text-align:start}
+.pbody .scene{text-align:center;text-indent:0;margin-block:var(--lhp)}
+.pbody .attop{margin-block-start:0!important}
+.pbody em.dot{font-style:normal;-webkit-text-emphasis:filled dot;text-emphasis:filled dot;-webkit-text-emphasis-position:under right;text-emphasis-position:under right}
+.pbody.v em.dot{-webkit-text-emphasis:filled sesame;text-emphasis:filled sesame;-webkit-text-emphasis-position:over right;text-emphasis-position:over right}
+.pbody rt{font-size:.5em;line-height:1;text-align:center}
+.pbody.v .tcy{-webkit-text-combine:horizontal;text-combine-upright:all}
+.toc-e{display:flex;align-items:baseline;gap:.5em;text-indent:0}
+.toc-e.l2{padding-inline-start:1.5em;font-size:.92em}
+.toc-e .ld{flex:1;overflow:hidden;white-space:nowrap;color:#777;letter-spacing:.2em;min-inline-size:1em}
+.toc-e .pn{font-variant-numeric:tabular-nums;font-family:var(--fb)}
+.pbody.v .toc-e .pn{-webkit-text-combine:horizontal;text-combine-upright:all}
+.phead{position:absolute;font-family:var(--fb);font-size:calc(var(--fs)*.78);line-height:1.2;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:1.4mm}
+.phead.rule{border-bottom:.35pt solid #333}
+.pnum{position:absolute;font-family:var(--fb);font-size:calc(var(--fs)*.82);line-height:1;color:#222;font-variant-numeric:tabular-nums;white-space:nowrap}
+.illus{position:absolute;display:block;max-width:none}
+.tp{position:absolute;display:flex;flex-direction:column;align-items:center;text-align:center;font-family:var(--fh);color:#111}
+.tp .t1{font-size:calc(var(--fs)*2.6);font-weight:700;line-height:1.3;letter-spacing:.08em;margin-top:24%}
+.tp .t2{font-size:calc(var(--fs)*1.15);margin-top:1.2em;letter-spacing:.12em;color:#333}
+.tp .t3{font-size:calc(var(--fs)*1.25);margin-top:2.6em;letter-spacing:.2em;font-family:var(--fb)}
+.tp .t4{margin-top:auto;font-size:calc(var(--fs)*.9);letter-spacing:.24em;font-family:var(--fb)}
+.tp.v{writing-mode:vertical-rl;align-items:flex-start;justify-content:center;text-align:start;gap:1.6em}
+.tp.v .t1{margin:0;padding-inline-start:12%}
+.tp.v .t2{margin:0;padding-inline-start:22%}
+.tp.v .t3{margin:0;align-self:flex-end;padding-inline-end:10%}
+.tp.v .t4{position:absolute;writing-mode:horizontal-tb;left:0;right:0;bottom:0;text-align:center;margin:0}
+.ded{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--fb);font-size:var(--fs);line-height:2;white-space:pre-wrap;color:#222}
+.ded.v{writing-mode:vertical-rl}
+.colo{position:absolute;display:flex;flex-direction:column;justify-content:flex-end;font-family:var(--fb);font-size:calc(var(--fs)*.82);line-height:1.75;color:#222}
+.colo h4{margin:0 0 .6em;font-family:var(--fh);font-size:calc(var(--fs)*1.2);font-weight:700;letter-spacing:.1em}
+.colo dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:0 1.4em;border-top:.35pt solid #333;border-bottom:.35pt solid #333;padding:.7em 0}
+.colo dt{color:#555}.colo dd{margin:0}
+.colo .cn{margin:.8em 0 0;white-space:pre-wrap;color:#444}
+.colo .imp{margin-top:1.4em;font:500 calc(var(--fs)*.62)/1 "Jost",var(--fb),sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#555}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;background:var(--ink);color:var(--panel);padding:9px 16px;font-size:13px;border:2px solid var(--yel);box-shadow:4px 4px 0 var(--red);max-width:calc(100% - 32px)}
+
+@media (max-width:1100px){
+  html,body{height:auto}
+  body{min-height:100%}
+  .grid{display:flex;flex-direction:column}
+  .stage{order:-1;height:66vh;min-height:360px;border-bottom:3px solid var(--rule)}
+  aside{overflow:visible}
+  #left,#right{border:0}
+  #left{border-bottom:3px solid var(--rule)}
+  .actions{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+@media print{
+  :root{padding:0!important}
+  html,body{height:auto!important;background:#fff!important;display:block!important}
+  .top,aside,.sbar,.deco,.toast,#bench{display:none!important}
+  .grid{display:block!important}
+  .stage{position:static!important;overflow:visible!important;height:auto!important;background:none!important;border:0!important}
+  .wrap{position:static!important;overflow:visible!important;padding:0!important}
+  .spreads{display:block!important;direction:ltr!important}
+  .sheetbox{width:auto!important;height:auto!important;box-shadow:none!important;break-after:page;page-break-after:always;content-visibility:visible!important}
+  .sheetbox:last-child{break-after:auto;page-break-after:auto}
+  .sheetbox::after{display:none}
+  .sheet{transform:none!important}
+}
+</style>
+<style id="pageRule"></style>
+
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 60 36" aria-hidden="true"><path d="M44 27 C54 27 57 19 51 15 S47 5 56 4" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M2 27 L44 6 L44 27 Z" fill="var(--yel)"/><rect x="34" y="27" width="10" height="5" fill="var(--blu)"/><circle cx="33" cy="9" r="7.5" fill="var(--red)"/><circle cx="18" cy="22" r="1.9" fill="var(--ink)"/></svg>
+    <h1>Kirkland <span>&amp;</span> Sunshine<small>小老鼠造纸坊 · K&amp;S PULPWERK</small></h1>
+  </div>
+  <div class="readout" id="readout" aria-live="polite"></div>
+  <div class="actions">
+    <a class="btn flat" id="toCover" target="_blank" rel="noopener" href="https://wardenrot.github.io/ks-coverwerk/">去做封面 →</a>
+    <button class="btn yel" id="btnRe">重新排版</button>
+    <button class="btn red" id="btnPdf">导出 PDF</button>
+  </div>
+</header>
+
+<main class="grid">
+  <aside id="left" aria-label="稿件">
+    <section class="sec">
+      <h2><i class="gl c"></i>稿件 <em id="cnt"></em></h2>
+      <div class="tools">
+        <button class="btn blu" id="btnOpen">导入 txt / md</button>
+        <button class="btn flat" id="btnSampleA" title="陈独秀，1915，公版">示例：敬告青年</button>
+        <button class="btn flat" id="btnSampleB" title="演示粗体、着重号、注音、场景分隔">示例：标记演示</button>
+        <button class="btn flat" id="btnClear">清空</button>
+      </div>
+      <input type="file" id="fileTxt" accept=".txt,.md,.markdown,text/plain" hidden>
+      <textarea id="src" spellcheck="false" aria-label="正文"></textarea>
+      <p class="note">示例《敬告青年》为公版文本，录自维基文库。直接粘贴你的全文即可。稿件和设置自动存在这台浏览器里，不上传。</p>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl s"></i>标记语法</h2>
+      <table class="syn">
+        <tr><td># 标题</td><td>章标题（进目录）</td></tr>
+        <tr><td>## 标题</td><td>节标题（进目录，缩进）</td></tr>
+        <tr><td>第X章 …</td><td>自动识别为章标题，可在右侧关闭</td></tr>
+        <tr><td>---</td><td>场景分隔 ＊ ＊ ＊</td></tr>
+        <tr><td>===</td><td>强制换页</td></tr>
+        <tr><td>**文字**</td><td>粗体</td></tr>
+        <tr><td>^^文字^^</td><td>着重号</td></tr>
+        <tr><td>{汉字|注音}</td><td>注音（ruby）</td></tr>
+        <tr><td>[图1]</td><td>独占一行：整页插图</td></tr>
+      </table>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl t"></i>插图页</h2>
+      <div class="tools"><button class="btn" id="btnImg">＋ 上传插图</button>
+        <select id="illFit" data-s="illFit" style="width:auto" aria-label="插图铺法"><option value="cover">满版（裁切）</option><option value="contain">留白（完整）</option></select></div>
+      <input type="file" id="fileImg" accept="image/*" multiple hidden>
+      <div class="imgs" id="imgs"></div>
+      <p class="note">插图不打断正文：标记所在页排满后，插图落在下一页。刷新页面后插图需要重新上传。</p>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl b"></i>扉页</h2>
+      <div class="chk"><label for="tpOn"><input type="checkbox" id="tpOn" data-s="tpOn"> 生成扉页（第 1 页）</label></div>
+      <div class="stack">
+        <label for="tTitle">书名<input type="text" id="tTitle" data-s="tTitle"></label>
+        <label for="tSub">副题<input type="text" id="tSub" data-s="tSub"></label>
+        <div class="pair"><label for="tAuthor">作者<input type="text" id="tAuthor" data-s="tAuthor"></label>
+        <label for="tCircle">社团 / 出版<input type="text" id="tCircle" data-s="tCircle"></label></div>
+        <label for="ded">献词页（留空则不生成）<textarea id="ded" data-s="ded" rows="2"></textarea></label>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl c"></i>版权页 <em>奥付 · 必有</em></h2>
+      <div class="seg" data-seg="coPos"><button data-v="end">放在书末</button><button data-v="front">放在扉页背面</button></div>
+      <div class="stack">
+        <div class="pair"><label for="cCover">封面 / 插画<input type="text" id="cCover" data-s="cCover"></label>
+        <label for="cTypeset">排版<input type="text" id="cTypeset" data-s="cTypeset"></label></div>
+        <div class="pair"><label for="cDate">发行日<input type="text" id="cDate" data-s="cDate"></label>
+        <label for="cPrint">印刷<input type="text" id="cPrint" data-s="cPrint"></label></div>
+        <label for="cContact">联系方式<input type="text" id="cContact" data-s="cContact"></label>
+        <label for="cNote">声明<textarea id="cNote" data-s="cNote" rows="3"></textarea></label>
+      </div>
+      <p class="note">书名、作者、社团取自扉页。页底固定一行排版工具署名，不可删除。</p>
+    </section>
+  </aside>
+
+  <section class="stage" id="stage" aria-label="预览">
+    <i class="deco d1"></i><i class="deco d2"></i><i class="deco d3"></i><i class="deco d4"></i>
+    <div class="sbar">
+      <button class="btn flat" id="zOut" aria-label="缩小">−</button>
+      <span id="zVal" style="min-width:44px;text-align:center">100%</span>
+      <button class="btn flat" id="zIn" aria-label="放大">＋</button>
+      <button class="btn flat" id="zFit">适应</button>
+      <label for="goPage" style="display:flex;align-items:center;gap:6px;margin-left:6px">跳到 <input type="number" id="goPage" min="1" style="width:64px;padding:2px 4px"> 页</label>
+      <span class="sp"></span>
+      <span class="busy" id="busy" hidden>排版中…</span>
+    </div>
+    <div class="wrap" id="wrap"><div class="spreads" id="spreads"></div></div>
+    <div id="bench"></div>
+  </section>
+
+  <aside id="right" aria-label="版式">
+    <section class="sec">
+      <h2><i class="gl c"></i>开本 <em>ISO 216</em></h2>
+      <div class="seg g2" data-seg="size">
+        <button data-v="A5">A5<small>148 × 210</small></button>
+        <button data-v="B5">B5<small>176 × 250</small></button>
+        <button data-v="A6">A6<small>105 × 148</small></button>
+        <button data-v="B6">B6<small>125 × 176</small></button>
+      </div>
+      <div class="seg" data-seg="mode">
+        <button data-v="h">横排<small>左翻</small></button>
+        <button data-v="v">竖排<small>右翻</small></button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl s"></i>字体与版心</h2>
+      <label class="row" for="fontBody"><span>正文字体</span><select id="fontBody" data-s="fontBody"></select></label>
+      <label class="row" for="fontHead"><span>标题字体</span><select id="fontHead" data-s="fontHead"></select></label>
+      <div class="pair">
+        <label for="fs">字号 pt<input type="number" id="fs" data-s="fs" min="6" max="16" step="0.5"></label>
+        <label for="lh">行距 倍<input type="number" id="lh" data-s="lh" min="1.2" max="2.6" step="0.05"></label>
+      </div>
+      <div class="quad">
+        <label for="mT">天 mm<input type="number" id="mT" data-s="mT" min="8" max="50" step="1"></label>
+        <label for="mB">地<input type="number" id="mB" data-s="mB" min="8" max="50" step="1"></label>
+        <label for="mI">订口<input type="number" id="mI" data-s="mI" min="8" max="50" step="1"></label>
+        <label for="mO">切口<input type="number" id="mO" data-s="mO" min="6" max="50" step="1"></label>
+      </div>
+      <div class="calc" id="calc"></div>
+      <label class="row" for="bleed"><span>出血</span><select id="bleed" data-s="bleed" data-n="1"><option value="0">无（纯文字内页）</option><option value="3">3 mm（有满版插图）</option></select></label>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl t"></i>段落</h2>
+      <div class="pair">
+        <label for="indent">首行缩进<select id="indent" data-s="indent" data-n="1"><option value="2">2 字</option><option value="1">1 字</option><option value="0">无</option></select></label>
+        <label for="paraGap">段间距<select id="paraGap" data-s="paraGap" data-n="1"><option value="0">无</option><option value="0.5">半行</option><option value="1">一行</option></select></label>
+      </div>
+      <div class="chk">
+        <label for="keepBlank"><input type="checkbox" id="keepBlank" data-s="keepBlank"> 保留空行</label>
+        <label for="autoCh"><input type="checkbox" id="autoCh" data-s="autoCh"> 自动识别“第X章”</label>
+        <label for="vQuotes"><input type="checkbox" id="vQuotes" data-s="vQuotes"> 竖排：“”转「」</label>
+        <label for="tcy"><input type="checkbox" id="tcy" data-s="tcy"> 竖排：数字纵中横</label>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl b"></i>章节</h2>
+      <label class="row" for="chBreak"><span>章首</span><select id="chBreak" data-s="chBreak"><option value="page">另起一页</option><option value="recto">另起单数页</option><option value="none">接排不换页</option></select></label>
+      <div class="pair">
+        <label for="chAlign">章题对齐<select id="chAlign" data-s="chAlign"><option value="center">居中</option><option value="start">靠行首</option></select></label>
+        <label for="chSink">章首下沉 行<input type="number" id="chSink" data-s="chSink" min="0" max="10" step="1"></label>
+      </div>
+      <div class="chk"><label for="toc"><input type="checkbox" id="toc" data-s="toc"> 自动目录</label></div>
+      <label class="row" for="tocTitle"><span>目录标题</span><input type="text" id="tocTitle" data-s="tocTitle"></label>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl c"></i>页眉与页码</h2>
+      <div class="chk">
+        <label for="header"><input type="checkbox" id="header" data-s="header"> 页眉（双数页书名 · 单数页章名）</label>
+        <label for="headRule"><input type="checkbox" id="headRule" data-s="headRule"> 页眉线</label>
+      </div>
+      <label class="row" for="pnPos"><span>页码位置</span><select id="pnPos" data-s="pnPos"><option value="bc">页脚居中</option><option value="bo">页脚外侧</option><option value="to">页眉外侧</option><option value="none">不显示</option></select></label>
+      <label class="row" for="pnStart"><span>页码起算</span><select id="pnStart" data-s="pnStart"><option value="book">全书连续（扉页为 1）</option><option value="body">正文首页为 1</option></select></label>
+      <label class="row" for="pad"><span>总页数补齐</span><select id="pad" data-s="pad" data-n="1"><option value="4">4 的倍数（胶装 / 骑马钉）</option><option value="2">2 的倍数</option><option value="1">不补</option></select></label>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl s"></i>导出</h2>
+      <p class="note">“导出 PDF”会打开浏览器打印窗口。请这样设：<br>① 目标打印机：<b style="color:var(--ink)">另存为 PDF</b><br>② 边距：<b style="color:var(--ink)">无</b><br>③ 勾选<b style="color:var(--ink)">背景图形</b><br>纸张尺寸已自动设好，文字是矢量、字体内嵌。建议用 Chrome 或 Edge。</p>
+      <p class="note" id="sandboxNote" hidden style="color:var(--red)">当前是在线预览环境，打印窗口可能被拦截。部署到 GitHub Pages 后正常。</p>
+    </section>
+  </aside>
+</main>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const r1=v=>Math.round(v*10)/10;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PT=25.4/72, PXMM=96/25.4;
+const SIZES={A5:[148,210],B5:[176,250],A6:[105,148],B6:[125,176]};
+const LSKEY='ks-pulpwerk-v1';
+
+/* ================= fonts ================= */
+const BODY_FONTS=[['Noto Serif SC','思源宋体',[400,700]],['Noto Sans SC','思源黑体',[400,700]],['LXGW WenKai TC','霞鹜文楷',[400,700]],['Noto Serif TC','思源宋体 繁',[400,700]],['Noto Sans TC','思源黑体 繁',[400,700]],['Shippori Mincho','しっぽり明朝（日文汉字）',[400,700]],['Zen Old Mincho','Zen 旧明朝（日文汉字）',[400,700]],['Klee One','Klee 硬笔（日文汉字）',[400,600]]];
+const HEAD_FONTS=BODY_FONTS.concat([['ZCOOL XiaoWei','站酷小薇体',[400]],['ZCOOL QingKe HuangYou','站酷庆科黄油体',[400]],['Ma Shan Zheng','马善政楷书',[400]],['Zhi Mang Xing','志莽行书',[400]],['Long Cang','龙藏体',[400]],['Cactus Classical Serif','仙人掌明体',[400]],['Chocolate Classical Sans','朱古力黑体',[400]],['Dela Gothic One','Dela 超粗黑',[400]]]);
+const linked={};
+function linkFont(name,weights){
+  if(linked[name])return linked[name];
+  return linked[name]=new Promise(res=>{
+    const make=plain=>{const l=document.createElement('link');l.rel='stylesheet';
+      l.href='https://fonts.googleapis.com/css2?family='+name.replace(/ /g,'+')+(!plain&&weights&&weights.length>1?':wght@'+weights.join(';'):'')+'&display=swap';
+      l.onload=()=>res(true);l.onerror=()=>{l.remove();plain?res(false):make(true);};document.head.appendChild(l);};
+    make(false);setTimeout(()=>res(false),8000);
+  });
+}
+linkFont('Jost',[400,500,700,800]);linkFont('DM Mono',[400,500]);linkFont('Noto Sans SC',[400,700]);
+const fdef=n=>HEAD_FONTS.find(f=>f[0]===n)||BODY_FONTS[0];
+async function prepFonts(text){
+  if(!document.fonts||!document.fonts.load)return;
+  const fb=fdef(S.fontBody),fh=fdef(S.fontHead);
+  await Promise.all([linkFont(fb[0],fb[2]),linkFont(fh[0],fh[2])]);
+  const uniq=Array.from(new Set(text+S.tTitle+S.tSub+S.tAuthor+S.tCircle+S.ded+S.cNote+S.tocTitle+'0123456789＊·')).join('').replace(/\s/g,'');
+  const jobs=[document.fonts.load(`400 12pt "${fb[0]}"`,uniq),document.fonts.load(`${fb[2][1]||400} 12pt "${fb[0]}"`,uniq.slice(0,400)),document.fonts.load(`${fh[2][1]||400} 12pt "${fh[0]}"`,uniq.slice(0,600))];
+  await Promise.race([Promise.all(jobs).catch(()=>{}),new Promise(r=>setTimeout(r,15000))]);
+}
+
+/* ================= settings ================= */
+const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
+const SAMPLE_A=`# 敬告青年
+
+竊以少年老成，中國稱人之語也；年長而勿衰（Keep young while growing old），英美人相勗之辭也。此亦東西民族涉想不同現象趨異之一端歟？青年如初春，如朝日，如百卉之萌動，如利刃之新發於硎，人生最可寶貴之時期也。青年之於社會，猶新鮮活潑細胞之在人身，新陳代謝，陳腐朽敗者無時不在天然淘汰之途，與新鮮活潑者以空間之位置及時間之生命。人身遵新陳代謝之道則健康，陳腐朽敗之細胞充塞人身則人身死；社會遵新陳代謝之道則隆盛，陳腐朽敗之分子充塞社會則社會亡。
+
+準斯以談，吾國之社會，其隆盛耶？抑將亡耶？非予之所忍言者。彼陳腐朽敗之分子，一聽其天然之淘汰，雅不願以如流之歲月，與之說短道長，希冀其脫胎換骨也。予所欲涕泣陳詞者，惟屬望於新鮮活潑之青年，有以自覺而奮鬥耳！自覺者何？自覺其新鮮活潑之價值與責任，而自視不可卑也。奮鬥者何？奮其智能，力排陳腐朽敗者以去，視之若仇敵，若洪水猛獸，而不可與爲鄰，而不爲其菌毒所傳染也。嗚呼！吾國之青年，其果能語於此乎？吾見夫青年其年齡，而老年其身體者十之五焉，青年其年齡或身體，而老年其腦神經者十之九焉。華其髮，澤其容，直其腰，廣其膈，非不儼然青年也，及叩其頭腦中所涉想所懷抱，無一不與彼陳腐朽敗者爲一丘之貉。其始也未嘗不新鮮活潑，寖假而爲陳腐朽敗分子所同化者有之，寖假而畏陳腐朽敗分子勢力之龐大，瞻顧依回，不敢明目張膽作頑狠之抗鬥者有之。充塞社會之空氣，無往而非陳腐朽敗焉，求些少之新鮮活潑者，以慰吾人窒息之絕望，亦杳不可得。循斯現象，於人身則必死，於社會則必亡。欲救此病，非太息咨嗟之所能濟，是在一二敏於自覺勇於奮鬥之青年，發揮人間固有之智能，決擇人間種種之思想。孰爲新鮮活潑，而適於今世之爭存？孰爲陳腐朽敗，而不容留置於腦裏？利刃斷鐵，快刀理麻，決不作牽就依違之想，自度度人，社會庶幾其有清寧之日也。青年乎！其有以此自任者乎？若夫明其是非，以供決擇，謹陳六義，幸平心察之。
+
+## 一、自主的而非奴隸的
+
+等一人也，各有自主之權，絕無奴隸他人之權利，亦絕無以奴自處之義務。奴隸云者，古之昏弱對於強暴之橫奪，而失其自由權利者之稱也。自人權平等之說興，奴隸之名，非血氣所忍受。世稱近世歐洲歷史爲「解放歷史」，破壞君權，求政治之解放也；否認教權，求宗教之解放也；均產說興，求經濟之解放也；女子參政運動，求男權之解放也。解放云者，脫離夫奴隸之羈絆，以完其自主自由之人格之謂也。我有手足，自謀溫飽；我有口舌，自陳好惡；我有心思，自崇所信，絕不認他人之越俎，亦不應主我而奴他人。蓋自認爲獨立自主之人格以上，一切操行，一切權利，一切信仰，唯有聽命各自固有之智能，斷無盲從隸屬他人之理。非然者，忠孝節義，奴隸之道德也（德國大哲尼采（Nietzsche）別道德爲二類：有獨立心而勇敢者曰貴族道德（Morality of Noble）；謙遜而服從者曰奴隸道德（Morality of Slave））；輕刑薄賦，奴隸之幸福也；稱頌功德，奴隸之文章也；拜爵賜第，奴隸之光榮也；豐碑高墓，奴隸之紀念物也，以其是非榮辱，聽命他人，不以自身爲本位，則個人獨立平等之人格，消滅無存，其一切善惡行爲，勢不能訴之自身意志而課以功過，謂之奴隸，誰曰不宜？立德立功，首當辨此。
+
+## 二、進步的而非保守的
+
+不進則退，中國之恒言也。自宇宙之根本大法言之，森羅萬象，無日不在演進之途，萬無保守現狀之理。特以俗見拘牽，謂有二境，此法蘭西當代大哲柏格森（H. Bergson）之「創造進化論」（L'Evolution Creatrice）所以風靡一世也。以人事之進化言之，篤古不變之族，日就衰亡；日新求進之民，方興未已，存亡之數，可以逆睹。矧在吾國，大夢未覺，故步自封，精之政教文章，粗之布帛水火，無一不相形醜拙，而可與當世爭衡？舉凡殘民害理之妖言，率能徵之故訓，而不可謂誣，謬種流傳，豈自今始？固有之倫理、法律、學術、禮俗，無一非封建制度之遺，持較皙種之所爲，以幷世之人，而思想差遲幾及千載；尊重廿四朝之歷史性，而不作改進之圖，則驅吾民於二十世紀之世界以外，納之奴隸牛馬黑暗溝中而已，復何說哉！於此而言保守，誠不知爲何項制度文物，可以適用生存於今世。吾寧忍過去國粹之消亡，而不忍現在及將來之民族，不適世界之生存而歸削滅也。嗚呼！巴比倫人往矣，其文明尚有何等之效用耶？皮之不存，毛將焉傅？世界進化，駸駸未有已焉。其不能善變而與之俱進者，將見其不適環境之爭存，而退歸天然淘汰已耳，保守云乎哉！
+
+## 三、進取的而非退隱的
+
+當此惡流奔進之時，得一二自好之士，潔身引退，豈非希世懿德；然欲以化民成俗，請於百尺竿頭，再進一步。夫生存競爭，勢所不免，一息尚存，卽無守退安隱之餘地，排萬難而前行，乃人生之天職。以善意解之，退隱爲高人出世之行；以惡意解之，退隱爲弱者不適競爭之現象。歐俗以橫厲無前爲上德，亞洲以閑逸恬淡爲美風，東西民族強弱之原因，斯其一矣。此退隱主義之根本缺點也。若夫吾國之俗，習爲委靡，苟取利祿者，不在論列之數；自好之士，希聲隱淪，食粟衣帛，無益於世，世以雅人名士目之，實與遊惰無擇也。人心穢濁，不以此輩而有所補救，而國民抗往之風，植產之習，於焉以斬。人之生也，應戰勝惡社會，而不可爲惡社會所征服；應超出惡社會，進冒險苦鬥之兵，而不可逃遯惡社會，作退避安閑之想。嗚呼！歐羅巴鐵騎，入汝室矣，將高臥白雲何處也？吾願青年之爲孔、墨，而不願其爲巢、由；吾願青年之爲托爾斯泰與達噶爾（R. Tagore，印度隱遁詩人），不若其爲哥倫布與安重根！
+
+## 四、世界的而非鎖國的
+
+並吾國而存立於大地者，大小凡四十餘國，強半與吾有通商往來之誼，加之海陸交通，朝夕千里，古之所謂絕國，今視之若在戶庭。舉凡一國之經濟政治狀態有所變更，其影響率被於世界，不啻牽一髮而動全身也。立國於今之世，其興廢存亡，視其國之內政者半，影響於國外者恒亦半焉。以吾國近事證之：日本勃興，以促吾革命維新之局；歐洲戰起，日本乃有對我之要求，此非其彰彰者耶？投一國於世界潮流之中，篤舊者固速其危亡，善變者反因以競進。吾國自通海以來，自悲觀者言之，失地償金，國力索矣；自樂觀者言之，倘無甲午庚子兩次之福音，至今猶在八股垂髮時代。居今日而言鎖國閉關之策，匪獨力所不能，亦且勢所不利。萬邦並立，動輒相關，無論其國若何富強，亦不能漠視外情，自爲風氣。各國之制度文物，形式雖不必盡同，但不思驅其國於危亡者，其遵循共同原則之精神，漸趨一致，潮流所及，莫之能違。於此而執特別歷史國情之說，以冀抗此潮流，是猶有鎖國之精神，而無世界之智識，國民而無世界知識，其國將何以圖存於世界之中？語云：「閉戶造車，出門未必合轍。」今之造車者，不但閉戶，且欲以《周禮·考工》之制，行之歐美康莊，其患將不止不合轍已也！
+
+## 五、實利的而非虛文的
+
+自約翰彌爾（J.S.Mill）實利主義唱道於英，孔特（Comte）之實驗哲學唱道於法，歐洲社會之制度、人心之思想爲之一變。最近德意志科學大興，物質文明，造乎其極，制度人心，爲之再變。舉凡政治之所營，教育之所期，文學技術之所風尚，萬馬奔馳，無不齊集於厚生利用之一途，一切虛文空想之無裨於現實生活者，吐棄殆盡。當代大哲，若德意志之倭根（R.Eucken），若法蘭西之柏格森，雖不以現時物質文明爲美備，咸楬櫫生活（英文曰Life，德文曰Leben，法文曰La vie）問題爲立言之的。生活神聖，正以此次戰爭，血染其鮮明之旗幟。歐人空想虛文之夢，勢將覺悟無遺。夫利用厚生，崇實際而薄虛玄，本吾國初民之俗；而今日之社會制度、人心思想，悉自周漢兩代而來。《周禮》崇尚虛文，漢則罷黜百家而尊儒重道，名教之所昭垂，人心之所祈向，無一不與社會現實生活背道而馳，倘不改弦而更張之，則國力莫由昭蘇，社會永無寧日。祀天神而拯水旱，誦《孝經》以退黃巾，人非童昏，知其妄也。物之不切於實用者，雖金玉圭璋，不如布粟糞土。若事之無利於個人或社會現實生活者，皆虛文也，誑人之事也。誑人之事，雖祖宗之所遺留，聖賢之所垂教，政府之所提倡，社會之所崇尚，皆一文不值也！
+
+## 六、科學的而非想像的
+
+科學者何？吾人對於事物之概念，綜合客觀之現象，訴之主觀之理性而不矛盾之謂也。想像者何？既超脫客觀之現象，復拋棄主觀之理性，憑空構造，有假定而無實證，不可以人間已有之智靈，明其理由道其法則者也。在昔蒙昧之世，當今淺化之民，有想像而無科學。宗教美文，皆想像時代之產物。近代歐洲之所以優越他族者，科學之興，其功不在人權說下，若舟車之有兩輪焉。今且日新月異，舉凡一事之興，一物之細，罔不訴之科學法則，以定其得失從違，其效將使人間之思想云爲一遵理性，而迷信斬焉，而無知妄作之風息焉。國人而欲脫蒙昧時代，羞爲淺化之民也，則急起直追，當以科學與人權並重。士不知科學，故襲陰陽家符瑞五行之說，惑世誣民，地氣風水之談，乞靈枯骨；農不知科學，故無擇種去蟲之術；工不知科學，故貨棄於地，戰鬥生事之所需，一一仰給於異國；商不知科學，故惟識罔取近利，未來之勝算，無容心焉；醫不知科學，既不解人身之構造，復不事藥性之分析，菌毒傳染，更無聞焉，惟知附會五行生剋寒熱陰陽之說，襲古方以投藥餌，其術殆與矢人同科，其想像之最神奇者，莫如「氣」之一說，其說且通於力士羽流之術，試遍索宇宙間，誠不知此「氣」之果爲何物也？凡此無常識之思維，無理由之信仰，欲根治之，厥維科學。夫以科學說明眞理，事事求諸証實，較之想像武斷之所爲，其步度誠緩，然其步步皆踏實地，不若幻想突飛者之終無寸進也。宇宙間之事理無窮，科學領土內之膏腴待辟者，正自廣闊，青年勉乎哉！
+`;
+const SAMPLE_B=`# 第一章 到站
+
+列车在23点07分进站。站台上没有人。
+
+他提着一只箱子下车。箱子很轻，里面是两件衬衣、一本地图、一封没有拆开的信。
+
+“先生，末班车已经走了。”值班员说。
+
+“我知道。”
+
+“旅馆在桥那边，走路12分钟。”
+
+他点头，没有问价钱。值班员看了他一眼，把窗口的灯关了。
+
+桥是铁的。桥下的水不动。他在桥中间停下，把信拿出来，看了看信封上的字，又放回去。字是他自己写的。收信人也是他自己。
+
+旅馆只有一个房间亮着灯。柜台后面的女人没有抬头，推过来一本登记簿。他写了名字，日期写的是1998年。
+
+“今年不是1998年。”女人说。
+
+“我知道。”他说，“我只是还^^没有^^离开那一年。”
+
+女人把钥匙放在簿子上。7号房，三楼，走廊尽头。
+
+---
+
+房间里有一张床、一把椅子、一扇朝北的窗。他没有开灯。他坐在椅子上，等天亮。
+
+天没有亮得更快。
+
+# 第二章 清点
+
+## 箱子
+
+早晨六点，他把箱子打开，把东西一件一件放在床上。
+
+衬衣，两件。地图，一本，{泰晤士|Thames}河以南的部分被人撕掉了。信，一封。
+
+还有一样东西他不记得装过：一张车票，终点是这里，日期是明天。
+
+他把车票翻过来。背面有一行铅笔字：**不要拆那封信。**
+
+笔迹是他的。
+
+## 柜台
+
+他下楼。柜台后面换了一个男人。
+
+“昨晚那位女士呢？”
+
+“这里没有女士。”男人说，“这里30年只有我一个人。”
+
+“登记簿能给我看一下吗？”
+
+男人把簿子推过来。最后一行是他的名字。日期那一栏是空的。
+
+他没有再问。他付了两天的房钱，要了一壶茶。
+
+茶是凉的。他喝完了。
+
+# 第三章 明天
+
+他在镇上走了一天。镇子很小，一条街，一座桥，一个车站。每个人都认识他，每个人都叫他另一个名字。
+
+他没有纠正。
+
+傍晚他回到车站。值班员在窗口后面，灯亮着。
+
+“先生，末班车23点07分到。”
+
+“我是来坐车的，不是来接人的。”
+
+“这一站只有到达，没有出发。”值班员说，“您昨天就知道了。”
+
+他在长椅上坐下，把信拿出来。信封已经软了。
+
+23点07分，列车进站。车门打开，一个人提着一只箱子下车。
+
+那个人没有看他。
+
+他把信拆开。信纸上只有一行字，是明天的日期。
+
+他把信纸折好，放进那个人留在站台上的箱子里，然后上了车。
+
+车门关上。站台上没有人。
+`;
+let S=Object.assign({},DEF),imgs=[];
+function load(){try{const o=JSON.parse(localStorage.getItem(LSKEY)||'null');if(o&&o.S){S=Object.assign({},DEF,o.S);return typeof o.text==='string'?o.text:SAMPLE_A;}}catch(_){}return SAMPLE_A;}
+let saveT=0;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(LSKEY,JSON.stringify({S,text:$('src').value}));}catch(_){}} ,400);}
+
+/* ================= parse ================= */
+const RE_CH=/^(第[零〇一二三四五六七八九十百千两0-9０-９]+[章回卷节部篇集幕话]|(Chapter|CHAPTER|Kapitel|KAPITEL|Part|PART)\s+\S+|序章|序幕|楔子|引子|前言|尾声|终章|后记|番外|附录)([\s　：:·.．、—-]|$)/;
+const FW='０１２３４５６７８９';
+function vfix(s){
+  if(S.vQuotes){s=s.replace(/“/g,'「').replace(/”/g,'」').replace(/‘/g,'『').replace(/’/g,(m,o,str)=>/[A-Za-z]/.test(str[o-1]||'')&&/[A-Za-z]/.test(str[o+1]||'')?m:'』');}
+  if(S.tcy){
+    s=s.replace(/(^|[^0-9A-Za-z])([0-9]{4,})(?![0-9A-Za-z])/g,(m,a,b)=>a+b.replace(/[0-9]/g,d=>FW[+d]));
+    s=s.replace(/(^|[^0-9A-Za-z])([0-9]{2,3}|[!?]{2})(?![0-9A-Za-z])/g,(m,a,b)=>a+'<span class="tcy">'+b+'</span>');
+    s=s.replace(/(^|[^0-9A-Za-z])([0-9])(?![0-9A-Za-z])/g,(m,a,b)=>a+FW[+b]);
+  }
+  return s;
+}
+function inline(t){
+  let h=esc(t);
+  h=h.replace(/\{([^{}|]+)\|([^{}|]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\^\^([^^]+)\^\^/g,'<em class="dot">$1</em>');
+  if(S.mode==='v')h=h.split(/(<[^>]+>)/).map(x=>x[0]==='<'?x:vfix(x)).join('');
+  return h;
+}
+function parse(text){
+  const out=[];let blanks=0;
+  text.replace(/\r\n?/g,'\n').split('\n').forEach(raw=>{
+    const line=raw.replace(/^[\s　]+|[\s　]+$/g,'');
+    if(!line){blanks++;return;}
+    if(S.keepBlank&&out.length)for(let i=0;i<Math.min(blanks,4);i++)out.push({t:'blank'});
+    blanks=0;let m;
+    if((m=line.match(/^(#{1,2})\s*(.+)$/)))out.push({t:m[1].length===1?'h1':'h2',text:m[2],html:inline(m[2])});
+    else if(/^(-{3,}|\*{3,}|＊{3,}|—{3,})$/.test(line))out.push({t:'scene'});
+    else if(/^={3,}$/.test(line))out.push({t:'break'});
+    else if((m=line.match(/^\[图\s*(\d+)\]$/)))out.push({t:'img',n:+m[1]});
+    else if(S.autoCh&&line.length<=30&&RE_CH.test(line))out.push({t:'h1',text:line,html:inline(line)});
+    else out.push({t:'p',html:inline(line)});
+  });
+  return out;
+}
+
+/* ================= geometry ================= */
+let G=null;
+function calcGeom(){
+  const [W,H]=SIZES[S.size],fsmm=S.fs*PT,lhmm=S.fs*S.lh*PT,aw=W-S.mI-S.mO,ah=H-S.mT-S.mB,v=S.mode==='v';
+  const N=Math.max(4,Math.floor((v?ah:aw)/fsmm-0.3)),M=Math.max(3,Math.floor((v?aw:ah)/lhmm));
+  const inlinePt=(N+0.3)*S.fs,blockPt=M*S.fs*S.lh;
+  const bwPt=v?blockPt:inlinePt,bhPt=v?inlinePt:blockPt;
+  return {W,H,N,M,v,aw,ah,bwPt,bhPt,bwMm:bwPt*PT,bhMm:bhPt*PT,SW:W+2*S.bleed,SH:H+2*S.bleed};
+}
+function applyVars(root){
+  const st=root.style,fb=fdef(S.fontBody)[0],fh=fdef(S.fontHead)[0];
+  st.setProperty('--sw',G.SW+'mm');st.setProperty('--sh',G.SH+'mm');st.setProperty('--pw',G.W+'mm');st.setProperty('--ph',G.H+'mm');st.setProperty('--bleed',S.bleed+'mm');
+  st.setProperty('--fs',S.fs+'pt');st.setProperty('--lhp',(S.fs*S.lh)+'pt');st.setProperty('--ind',S.indent+'em');st.setProperty('--pg',(S.fs*S.lh*S.paraGap)+'pt');
+  st.setProperty('--sink',S.chSink);st.setProperty('--cha',S.chAlign);st.setProperty('--chpad',S.chAlign==='start'?'2em':'0');
+  st.setProperty('--fb',`"${fb}","Noto Serif SC","Songti SC","SimSun",serif`);st.setProperty('--fh',`"${fh}","${fb}","Noto Serif SC",serif`);
+  st.setProperty('--z',view.z);
+  root.classList.toggle('rtl',G.v);root.classList.toggle('single',view.single);
+}
+const view={z:0.6,zf:1,single:false};
+function fitZoom(){
+  if(!G)return;const ww=$('wrap').clientWidth-40;view.single=ww<620;
+  const base=clamp(ww/((view.single?1:2)*G.SW*PXMM),0.12,2);view.z=base*view.zf;
+  const root=$('spreads');root.style.setProperty('--z',view.z);root.classList.toggle('single',view.single);
+  $('zVal').textContent=Math.round(view.zf*100)+'%';
+}
+
+/* ================= page factory ================= */
+let pages=[];
+function mk(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function innerLeft(no){const odd=no%2===1;return G.v?!odd:odd;}       // is the binding edge on the left of this page?
+function bodyBox(no){const left=(innerLeft(no)?S.mI:S.mO)+(G.aw-G.bwMm)/2;return {left,top:S.mT};}
+function newSheet(root,kind){
+  const no=pages.length+1,box=mk('div','sheetbox'),sheet=mk('div','sheet'),page=mk('div','page');
+  box.dataset.no=no;sheet.appendChild(page);box.appendChild(sheet);root.appendChild(box);
+  const pg={no,kind,box,sheet,page,body:null,chap:'',opening:false};pages.push(pg);return pg;
+}
+function addBody(pg){
+  const b=bodyBox(pg.no),el=mk('div','pbody'+(G.v?' v':''));
+  el.style.cssText=`left:${b.left}mm;top:${b.top}mm;width:${G.bwPt}pt;height:${G.bhPt}pt`;
+  pg.page.appendChild(el);pg.body=el;return el;
+}
+function areaStyle(pg){const l=innerLeft(pg.no)?S.mI:S.mO;return `left:${l}mm;top:${S.mT}mm;width:${G.aw}mm;height:${G.ah}mm`;}
+function ensureRecto(root){if(pages.length%2===1)newSheet(root,'blank');}
+
+/* ================= the paginator ================= */
+function over(el,body,tol){const a=el.getBoundingClientRect(),b=body.getBoundingClientRect();return G.v?a.left<b.left-tol:a.bottom>b.bottom+tol;}
+function textMap(el){
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('rt,rp')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const a=[];let n,t=0;while((n=w.nextNode())){if(n.data.length){a.push({n,s:t,e:t+n.data.length});t+=n.data.length;}}
+  return {a,total:t};
+}
+function locate(tm,i){for(const x of tm.a)if(i<x.e)return {node:x.n,off:i-x.s};const l=tm.a[tm.a.length-1];return {node:l.n,off:l.n.data.length};}
+/* first character index whose line lies beyond the body's block-end edge; null = whole block must move; -1 = fits */
+function findSplit(el,body){
+  const tm=textMap(el);if(!tm.total)return null;
+  const br=body.getBoundingClientRect(),lim=G.v?br.left:br.bottom,rng=document.createRange();
+  const half=0.45*S.fs*(96/72)*view.z,tol=0.6*view.z;   // judge by the glyph's em box, so annotations that stretch a line cannot push ink into the margin
+  const beyond=i=>{for(;i<tm.total;i++){const p=locate(tm,i);rng.setStart(p.node,p.off);rng.setEnd(p.node,Math.min(p.off+1,p.node.data.length));const rs=rng.getClientRects();if(!rs.length)continue;const r=rs[0];if(!r.width&&!r.height)continue;return G.v?(r.left+r.right)/2-half<lim-tol:(r.top+r.bottom)/2+half>lim+tol;}return true;};
+  if(!beyond(tm.total-1))return -1;
+  let lo=0,hi=tm.total-1;while(lo<hi){const mid=(lo+hi)>>1;if(beyond(mid))hi=mid;else lo=mid+1;}
+  if(lo===0)return null;
+  const p=locate(tm,lo);if(p.off>0&&/[\uDC00-\uDFFF]/.test(p.node.data[p.off]))p.off--;
+  rng.setStart(p.node,p.off);
+  for(let a=p.node.parentElement;a&&a!==el;a=a.parentElement)if(a.matches('ruby,.tcy'))rng.setStartBefore(a);
+  rng.setEndAfter(el.lastChild);
+  const head=document.createRange();head.selectNodeContents(el);head.setEnd(rng.startContainer,rng.startOffset);
+  if(!head.toString().replace(/\s/g,'').length)return null;
+  return rng;
+}
+function render(b,entries){
+  if(b.t==='p'){const e=mk('p','',b.html);return e;}
+  if(b.t==='h1'||b.t==='h2'){const e=mk(b.t==='h1'?'h2':'h3',b.t==='h1'?'ch':'sec2',b.html);e._entry={lvl:b.t==='h1'?1:2,text:b.text,el:e};entries.push(e._entry);return e;}
+  if(b.t==='scene')return mk('div','scene','＊　＊　＊');
+  if(b.t==='blank')return mk('p','blankline','&nbsp;');
+  if(b.t==='toc'){const e=mk('div','toc-e'+(b.lvl===2?' l2':''),`<span class="tt">${esc(b.text)}</span><span class="ld">${'·'.repeat(160)}</span><span class="pn">000</span>`);b.entry.tocEl=e;return e;}
+  if(b.t==='toch')return mk('h2','ch',esc(b.text));
+  return mk('p');
+}
+async function flow(root,blocks,kind,ctx){
+  let pg=null,chap=ctx.chap||'';const illQ=[];
+  const tol=0.6*view.z;
+  const flushIll=()=>{while(illQ.length){const n=illQ.shift(),im=imgs[n-1],ip=newSheet(root,'ill');
+    if(im){const i=mk('img','illus');i.src=im.url;i.alt='';const fit=S.illFit;
+      if(fit==='cover'){ip.sheet.appendChild(i);i.style.cssText='left:0;top:0;width:100%;height:100%;object-fit:cover';}
+      else{ip.page.appendChild(i);i.style.cssText=areaStyle(ip)+';object-fit:contain';}
+    }else{const d=mk('div','ded','［图'+n+' 未上传］');d.style.cssText=areaStyle(ip);ip.page.appendChild(d);}
+  }};
+  const open=()=>{flushIll();pg=newSheet(root,kind);addBody(pg);pg.chap=chap;return pg;};
+  const next=()=>{                              // page is full: carry a trailing heading forward, then open a fresh page
+    const last=pg.body.lastElementChild,carry=last&&last.matches('.ch,.sec2')&&pg.body.children.length>1?last:null;
+    if(carry)carry.remove();open();if(carry){pg.body.appendChild(carry);markTop(carry);if(carry.classList.contains('ch')){pg.opening=true;}}
+  };
+  const markTop=el=>{if(el===pg.body.firstElementChild&&el.matches('.sec2,.scene'))el.classList.add('attop');};
+  let n=0;
+  for(const b of blocks){
+    if(ctx.cancelled())return false;
+    if(b.t==='break'){if(pg&&pg.body.children.length)open();continue;}
+    if(b.t==='img'){illQ.push(b.n);if(!pg||!pg.body.children.length){if(pg){pages.pop();pg.box.remove();pg=null;}flushIll();}continue;}
+    if(!pg)open();
+    if(b.t==='h1'&&kind==='body'){
+      if(S.chBreak!=='none'&&pg.body.children.length)open();
+      if(S.chBreak==='recto'&&pg.no%2===0){pages.pop();pg.box.remove();flushIll();newSheet(root,'blank');open();}
+      chap=b.text;
+    }
+    if(b.t==='h2'&&kind==='body')chap=b.text;
+    let el=render(b,ctx.entries);
+    if(b.t==='blank'&&!pg.body.children.length)continue;
+    pg.body.appendChild(el);
+    if(el.classList.contains('ch')){if(el===pg.body.firstElementChild){pg.opening=true;pg.chap=chap;}else el.classList.add('mid');}
+    markTop(el);
+    let guard=0;
+    while(over(el,pg.body,tol)&&guard++<400){
+      const only=pg.body.children.length===1;
+      const sp=b.t==='p'?findSplit(el,pg.body):null;
+      if(sp===-1)break;
+      if(sp===null){
+        if(only)break;                           // cannot shrink further: accept
+        el.remove();next();
+        if(b.t==='blank'){el=null;break;}
+        pg.body.appendChild(el);markTop(el);if(el.classList.contains('ch')){el.classList.remove('mid');pg.opening=true;pg.chap=chap;}
+        continue;
+      }
+      const rest=el.cloneNode(false);rest.appendChild(sp.extractContents());rest.classList.add('cont');rest.classList.remove('split');el.classList.add('split');
+      next();pg.body.appendChild(rest);el=rest;
+    }
+    if(++n%40===0){ctx.tick(pages.length);await new Promise(r=>setTimeout(r,0));if(ctx.cancelled())return false;}
+  }
+  flushIll();
+  if(pg&&!pg.body.children.length&&pages[pages.length-1]===pg){pages.pop();pg.box.remove();}
+  return true;
+}
+
+/* ================= front / back matter ================= */
+function titlePage(pg){
+  const d=mk('div','tp'+(G.v?' v':''),`<div class="t1">${esc(S.tTitle)}</div>${S.tSub?`<div class="t2">${esc(S.tSub)}</div>`:''}${S.tAuthor?`<div class="t3">${esc(S.tAuthor)}</div>`:''}${S.tCircle?`<div class="t4">${esc(S.tCircle)}</div>`:''}`);
+  d.style.cssText=areaStyle(pg);pg.page.appendChild(d);
+}
+function dedPage(pg){const d=mk('div','ded'+(G.v?' v':''),esc(S.ded));d.style.cssText=areaStyle(pg);pg.page.appendChild(d);}
+function coloPage(pg){
+  const rows=[['书名',S.tTitle],['作者',S.tAuthor],['封面 / 插画',S.cCover],['排版',S.cTypeset],['发行',S.tCircle],['发行日',S.cDate],['印刷',S.cPrint],['联系',S.cContact]].filter(r=>r[1]);
+  const d=mk('div','colo',`<h4>${esc(S.tTitle||'')}</h4><dl>${rows.map(r=>`<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>${S.cNote?`<p class="cn">${esc(S.cNote)}</p>`:''}<div class="imp">Typeset with K&amp;S Pulpwerk · Kirkland &amp; Sunshine</div>`);
+  d.style.cssText=areaStyle(pg);pg.page.appendChild(d);
+}
+const TAG={title:'扉页',blank:'空白',ded:'献词',toc:'目录',body:'',ill:'插图',colo:'版权页'};
+
+/* ================= orchestrate ================= */
+let token=0,timer=0,lastPages=0;
+function schedule(ms){clearTimeout(timer);timer=setTimeout(paginate,ms==null?500:ms);}
+async function paginate(){
+  const my=++token,cancelled=()=>my!==token,text=$('src').value;
+  $('busy').hidden=false;$('busy').textContent='字体加载中…';save();
+  const t0=performance.now();
+  await prepFonts(text);if(cancelled())return;
+  G=calcGeom();
+  const bench=$('bench');bench.innerHTML='';const root=mk('div','spreads');bench.appendChild(root);applyVars(root);
+  pages=[];const blocks=parse(text),entries=[],tick=n=>{$('busy').textContent='排版中 · 第 '+n+' 页';};
+  if(S.tpOn){titlePage(newSheet(root,'title'));if(S.coPos==='front')coloPage(newSheet(root,'colo'));else newSheet(root,'blank');}
+  else if(S.coPos==='front'){coloPage(newSheet(root,'colo'));}
+  if(S.ded.trim()){ensureRecto(root);dedPage(newSheet(root,'ded'));}
+  const heads=blocks.filter(b=>b.t==='h1'||b.t==='h2');
+  const tocBlocks=[];
+  if(S.toc&&heads.length){
+    ensureRecto(root);tocBlocks.push({t:'toch',text:S.tocTitle||'目录'});
+    heads.forEach(h=>tocBlocks.push({t:'toc',lvl:h.t==='h1'?1:2,text:h.text,entry:h}));
+    if(!await flow(root,tocBlocks,'toc',{entries:[],cancelled,tick,chap:''}))return;
+  }
+  ensureRecto(root);
+  const bodyStart=pages.length+1;
+  if(!await flow(root,blocks,'body',{entries,cancelled,tick,chap:''}))return;
+  if(S.coPos==='end'){while((pages.length+1)%S.pad)newSheet(root,'blank');coloPage(newSheet(root,'colo'));}
+  else while(pages.length%S.pad)newSheet(root,'blank');
+  /* numbers, running heads, table of contents */
+  const disp=no=>S.pnStart==='book'?no:no-bodyStart+1;
+  entries.forEach((e,i)=>{const no=+e.el.closest('.sheetbox').dataset.no,h=heads[i];if(h&&h.tocEl)h.tocEl.querySelector('.pn').textContent=disp(no);});
+  pages.forEach(pg=>{
+    pg.box.dataset.tag='P'+pg.no+(TAG[pg.kind]?' · '+TAG[pg.kind]:'');
+    if(pg.kind!=='body'&&pg.kind!=='toc')return;
+    const d=disp(pg.no),bx=bodyBox(pg.no),outerLeft=!innerLeft(pg.no);
+    if(S.header&&pg.kind==='body'&&!pg.opening){
+      const txt=pg.no%2===0?S.tTitle:(pg.chap||S.tTitle);
+      if(txt){const h=mk('div','phead'+(S.headRule?' rule':''),esc(txt));h.style.cssText=`left:${bx.left}mm;width:${G.bwMm}mm;top:${Math.max(3,S.mT-8)}mm;text-align:${S.pnPos==='to'?(outerLeft?'right':'left'):(outerLeft?'left':'right')}`;pg.page.appendChild(h);}
+    }
+    if(S.pnPos!=='none'&&d>=1){
+      const p=mk('div','pnum',String(d));let css=`left:${bx.left}mm;width:${G.bwMm}mm;`;
+      if(S.pnPos==='to')css+=`top:${Math.max(3,S.mT-8)}mm;text-align:${outerLeft?'left':'right'}`;
+      else css+=`top:${S.mT+G.bhMm+Math.min(6,Math.max(2,(S.mB-(G.ah-G.bhMm))/2))}mm;text-align:${S.pnPos==='bc'?'center':(outerLeft?'left':'right')}`;
+      p.style.cssText=css;pg.page.appendChild(p);
+    }
+  });
+  if(cancelled())return;
+  /* swap in */
+  const wrap=$('wrap'),old=$('spreads'),ratio=wrap.scrollHeight>wrap.clientHeight?wrap.scrollTop/(wrap.scrollHeight-wrap.clientHeight):0;
+  root.id='spreads';old.replaceWith(root);fitZoom();root.classList.add('done');
+  wrap.scrollTop=ratio*(wrap.scrollHeight-wrap.clientHeight);
+  $('pageRule').textContent=`@page{size:${G.SW}mm ${G.SH}mm;margin:0}`;
+  lastPages=pages.length;$('busy').hidden=true;
+  const chars=text.replace(/\s/g,'').length,ms=Math.round(performance.now()-t0);
+  $('cnt').textContent=chars.toLocaleString()+' 字';
+  $('readout').innerHTML=`<span>总页数 <b>${pages.length}</b></span><span>正文 <b>${pages.length-bodyStart+1-(S.coPos==='end'?1:0)}</b> 页</span><span>版心 <b>${G.N} 字 × ${G.M} 行</b></span><span>排版 <b>${(ms/1000).toFixed(1)} s</b></span>`;
+  $('calc').innerHTML=`每行 <b>${G.N}</b> 字 · 每页 <b>${G.M}</b> 行<br>版心 ${r1(G.bwMm)} × ${r1(G.bhMm)} mm · 满页约 ${G.N*G.M} 字`;
+  $('goPage').max=pages.length;
+  $('toCover').href='https://wardenrot.github.io/ks-coverwerk/?pages='+pages.length+'&size='+S.size+'&bind='+(G.v?'right':'left');
+  $('toCover').title='带着页数 '+pages.length+' 去封面工具，自动算书脊';
+}
+
+/* ================= UI ================= */
+function fillSelect(id,list){$(id).innerHTML=list.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');}
+function syncUI(){
+  document.querySelectorAll('[data-s]').forEach(e=>{const k=e.dataset.s;if(e.type==='checkbox')e.checked=!!S[k];else e.value=S[k];});
+  document.querySelectorAll('[data-seg]').forEach(g=>[...g.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(S[g.dataset.seg])))));
+}
+document.addEventListener('input',e=>{
+  const t=e.target,k=t.dataset&&t.dataset.s;if(!k)return;
+  let v=t.type==='checkbox'?t.checked:t.value;
+  if(t.type==='number'||t.dataset.n){v=parseFloat(v);if(!isFinite(v))return;if(t.min!=='')v=Math.max(+t.min,v);if(t.max!=='')v=Math.min(+t.max,v);}
+  S[k]=v;save();schedule(t.type==='text'||t.tagName==='TEXTAREA'?700:350);
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-seg]>button');if(!b)return;
+  S[b.parentElement.dataset.seg]=b.dataset.v;syncUI();save();schedule(50);
+});
+$('src').addEventListener('input',()=>{save();schedule($('src').value.length>20000?1600:700);});
+$('btnRe').onclick=()=>schedule(0);
+$('btnOpen').onclick=()=>$('fileTxt').click();
+$('fileTxt').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const buf=await f.arrayBuffer();let txt;
+  try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(_){try{txt=new TextDecoder('gb18030').decode(buf);}catch(__){txt=new TextDecoder().decode(buf);}}
+  $('src').value=txt.replace(/^﻿/,'');if(!S.tTitle||S.tTitle===DEF.tTitle){S.tTitle=f.name.replace(/\.[^.]+$/,'');syncUI();}
+  toast('已导入 '+f.name+' · '+txt.replace(/\s/g,'').length.toLocaleString()+' 字');schedule(0);};
+$('btnSampleA').onclick=()=>{$('src').value=SAMPLE_A;Object.assign(S,{mode:'v',tTitle:DEF.tTitle,tSub:DEF.tSub,tAuthor:DEF.tAuthor});syncUI();schedule(0);};
+$('btnSampleB').onclick=()=>{$('src').value=SAMPLE_B;Object.assign(S,{mode:'h',tTitle:'末班车之后',tSub:'一个短篇',tAuthor:'作者名'});syncUI();schedule(0);};
+$('btnClear').onclick=()=>{$('src').value='';schedule(0);};
+$('btnImg').onclick=()=>$('fileImg').click();
+$('fileImg').onchange=e=>{[...e.target.files].filter(f=>f.type.startsWith('image/')).forEach(f=>imgs.push({url:URL.createObjectURL(f),name:f.name}));e.target.value='';renderImgs();schedule(0);};
+function renderImgs(){
+  $('imgs').innerHTML=imgs.length?imgs.map((m,i)=>`<div class="it"><img src="${m.url}" alt=""><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</span><code>[图${i+1}]</code><button class="btn flat" data-ins="${i+1}">插入</button></div>`).join(''):'<div class="empty">还没有插图。上传后在正文里单独一行写 [图1]。</div>';
+}
+$('imgs').addEventListener('click',e=>{const b=e.target.closest('[data-ins]');if(!b)return;const ta=$('src'),pos=ta.selectionStart,tok='\n[图'+b.dataset.ins+']\n';ta.value=ta.value.slice(0,pos)+tok+ta.value.slice(pos);ta.focus();ta.selectionStart=ta.selectionEnd=pos+tok.length;schedule(0);});
+$('zIn').onclick=()=>{view.zf=clamp(view.zf*1.2,0.3,4);fitZoom();};
+$('zOut').onclick=()=>{view.zf=clamp(view.zf/1.2,0.3,4);fitZoom();};
+$('zFit').onclick=()=>{view.zf=1;fitZoom();};
+$('goPage').addEventListener('change',e=>{const n=clamp(parseInt(e.target.value)||1,1,pages.length),pg=pages[n-1];if(pg)pg.box.scrollIntoView({block:'start'});});
+let rsT=0;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rsT);rsT=setTimeout(fitZoom,80);}).observe($('wrap'));
+let toastT=0;function toast(m,ms){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms||3600);}
+$('btnPdf').onclick=()=>{if(!lastPages){toast('还没有排好的页面');return;}toast('打印窗口里：目标选“另存为 PDF”，边距选“无”，勾选“背景图形”。',7000);setTimeout(()=>{try{window.print();}catch(_){toast('此环境无法打开打印窗口。请部署到 GitHub Pages 后使用。',5000);}},250);};
+if(window.claude||/claude/.test(location.hostname))$('sandboxNote').hidden=false;
+
+fillSelect('fontBody',BODY_FONTS);fillSelect('fontHead',HEAD_FONTS);
+$('src').value=load();syncUI();renderImgs();G=calcGeom();fitZoom();paginate();
+})();
+</script>
+</body>
+</html>
