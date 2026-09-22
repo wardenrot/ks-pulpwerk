@@ -130,6 +130,7 @@ table.syn td:last-child{color:var(--mut)}
 .spreads.done .sheetbox{content-visibility:auto;contain-intrinsic-size:auto calc(var(--sw)*var(--z)) auto calc(var(--sh)*var(--z))}
 .sheetbox::after{content:attr(data-tag);position:absolute;left:0;bottom:-17px;font:10px var(--mono);color:var(--mut);white-space:nowrap}
 .sheet{position:relative;width:var(--sw);height:var(--sh);transform:scale(var(--z));transform-origin:0 0;background:#fff;color:#111;overflow:hidden;contain:layout style}
+.crops i{position:absolute;display:block;background:#000;transform:translate(-0.05mm,-0.05mm)}
 .page{position:absolute;left:var(--bleed);top:var(--bleed);width:var(--pw);height:var(--ph)}
 .pbody{position:absolute;display:flow-root;font-family:var(--fb);font-size:var(--fs);line-height:var(--lhp);text-align:justify;line-break:strict;overflow-wrap:anywhere;color:#111;font-kerning:normal}
 .pbody.v{writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;text-orientation:mixed}
@@ -377,6 +378,7 @@ table.syn td:last-child{color:var(--mut)}
       </div>
       <div class="calc" id="calc"></div>
       <label class="row" for="bleed"><span>出血</span><select id="bleed" data-s="bleed" data-n="1"><option value="0">无（纯文字内页）</option><option value="3">3 mm（有满版插图）</option></select></label>
+      <div class="chk"><label for="crop"><input type="checkbox" id="crop" data-s="crop"> 裁切线（页面外扩 3 mm 白边）</label></div>
     </section>
 
     <section class="sec">
@@ -460,7 +462,7 @@ async function prepFonts(text){
 }
 
 /* ================= settings ================= */
-const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',anth:false,pieceOpen:'block',aIndex:true,aIndexTitle:'作者索引',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
+const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,crop:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',anth:false,pieceOpen:'block',aIndex:true,aIndexTitle:'作者索引',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
 const SAMPLE_A=`# 敬告青年
 
 竊以少年老成，中國稱人之語也；年長而勿衰（Keep young while growing old），英美人相勗之辭也。此亦東西民族涉想不同現象趨異之一端歟？青年如初春，如朝日，如百卉之萌動，如利刃之新發於硎，人生最可寶貴之時期也。青年之於社會，猶新鮮活潑細胞之在人身，新陳代謝，陳腐朽敗者無時不在天然淘汰之途，與新鮮活潑者以空間之位置及時間之生命。人身遵新陳代謝之道則健康，陳腐朽敗之細胞充塞人身則人身死；社會遵新陳代謝之道則隆盛，陳腐朽敗之分子充塞社會則社會亡。
@@ -604,11 +606,11 @@ function calcGeom(){
   const N=Math.max(4,Math.floor((v?ah:aw)/fsmm-0.3)),M=Math.max(3,Math.floor((v?aw:ah)/lhmm));
   const inlinePt=(N+0.3)*S.fs,blockPt=M*S.fs*S.lh;
   const bwPt=v?blockPt:inlinePt,bhPt=v?inlinePt:blockPt;
-  return {W,H,N,M,v,aw,ah,bwPt,bhPt,bwMm:bwPt*PT,bhMm:bhPt*PT,SW:W+2*S.bleed,SH:H+2*S.bleed};
+  return {W,H,N,M,v,aw,ah,bwPt,bhPt,bwMm:bwPt*PT,bhMm:bhPt*PT,slug:S.crop?3:0,off:S.bleed+(S.crop?3:0),SW:W+2*S.bleed+(S.crop?6:0),SH:H+2*S.bleed+(S.crop?6:0)};
 }
 function applyVars(root){
   const st=root.style,fb=fdef(S.fontBody)[0],fh=fdef(S.fontHead)[0];
-  st.setProperty('--sw',G.SW+'mm');st.setProperty('--sh',G.SH+'mm');st.setProperty('--pw',G.W+'mm');st.setProperty('--ph',G.H+'mm');st.setProperty('--bleed',S.bleed+'mm');
+  st.setProperty('--sw',G.SW+'mm');st.setProperty('--sh',G.SH+'mm');st.setProperty('--pw',G.W+'mm');st.setProperty('--ph',G.H+'mm');st.setProperty('--bleed',G.off+'mm');
   st.setProperty('--fs',S.fs+'pt');st.setProperty('--lhp',(S.fs*S.lh)+'pt');st.setProperty('--ind',S.indent+'em');st.setProperty('--pg',(S.fs*S.lh*S.paraGap)+'pt');
   st.setProperty('--sink',S.chSink);st.setProperty('--cha',S.chAlign);st.setProperty('--chpad',S.chAlign==='start'?'2em':'0');
   st.setProperty('--fb',`"${fb}","Noto Serif SC","Songti SC","SimSun",serif`);st.setProperty('--fh',`"${fh}","${fb}","Noto Serif SC",serif`);
@@ -631,6 +633,9 @@ function bodyBox(no){const left=(innerLeft(no)?S.mI:S.mO)+(G.aw-G.bwMm)/2;return
 function newSheet(root,kind){
   const no=pages.length+1,box=mk('div','sheetbox'),sheet=mk('div','sheet'),page=mk('div','page');
   box.dataset.no=no;sheet.appendChild(page);box.appendChild(sheet);root.appendChild(box);
+  if(G.slug){const m=mk('div','crops'),o=G.off,L=G.slug-0.5,W=G.SW,H=G.SH; // marks sit in the white slug ring, outside the bleed
+    [[0,o,L,0],[W-L,o,L,0],[0,H-o,L,0],[W-L,H-o,L,0],[o,0,0,L],[W-o,0,0,L],[o,H-L,0,L],[W-o,H-L,0,L]].forEach(([x,y,w,h])=>{const d=mk('i');d.style.cssText=`left:${x}mm;top:${y}mm;width:${w||0.1}mm;height:${h||0.1}mm`;m.appendChild(d);});
+    sheet.appendChild(m);}
   const pg={no,kind,box,sheet,page,body:null,chap:'',opening:false};pages.push(pg);return pg;
 }
 function addBody(pg){
@@ -685,7 +690,7 @@ async function flow(root,blocks,kind,ctx){
   const tol=0.6*view.z;
   const flushIll=()=>{while(illQ.length){const n=illQ.shift(),im=imgs[n-1],ip=newSheet(root,'ill');
     if(im){const i=mk('img','illus');i.src=im.url;i.alt='';const fit=S.illFit;
-      if(fit==='cover'){ip.sheet.appendChild(i);i.style.cssText='left:0;top:0;width:100%;height:100%;object-fit:cover';}
+      if(fit==='cover'){ip.sheet.appendChild(i);i.style.cssText=`left:${G.slug}mm;top:${G.slug}mm;width:${G.W+2*S.bleed}mm;height:${G.H+2*S.bleed}mm;object-fit:cover`;}
       else{ip.page.appendChild(i);i.style.cssText=areaStyle(ip)+';object-fit:contain';}
     }else{const d=mk('div','ded','［图'+n+' 未上传］');d.style.cssText=areaStyle(ip);ip.page.appendChild(d);}
   }};
