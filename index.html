@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="K&amp;S Pulpwerk · 小老鼠造纸坊：同人本内页排版器。横排 / 竖排、自动分页、目录、页眉页码、扉页与版权页，矢量 PDF 导出。">
+<meta name="description" content="K&amp;S Pulpwerk · 小老鼠造纸坊：同人本内页排版器。横排 / 竖排、自动分页、合志模式、目录、页眉页码、扉页与版权页，矢量 PDF 导出。">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -139,6 +139,30 @@ table.syn td:last-child{color:var(--mut)}
 .pbody b{font-weight:700}
 .pbody .ch{font-family:var(--fh);font-weight:700;font-size:1.5em;line-height:calc(var(--lhp)*2);margin:0;margin-block:calc(var(--lhp)*var(--sink)) calc(var(--lhp)*2);text-align:var(--cha);text-indent:0;text-align-last:auto}
 .pbody.v .ch{padding-inline-start:var(--chpad)}
+.pbody .ch .pt{display:block}
+.pbody .ch .au{display:block;font-family:var(--fb);font-weight:400;font-size:var(--fs);line-height:var(--lhp);letter-spacing:.16em}
+.pbody .ch .tg{display:block;font-family:var(--fb);font-weight:400;font-size:calc(var(--fs)*.8);line-height:var(--lhp);color:#555;letter-spacing:.06em}
+.pbody p.after{font-size:.86em;text-indent:0;margin-inline-start:2em;color:#333}
+.pbody p.after.first{margin-block-start:var(--lhp)}
+.pbody .aidx{text-indent:0;margin-block-end:var(--lhp)}
+.pbody .aidx .an{font-family:var(--fh);font-weight:700}
+.pbody .aidx .an small{font-family:var(--fb);font-weight:400;font-size:.78em;color:#555;margin-inline-start:1em}
+.toc-e .tt{flex:0 1 auto;min-inline-size:0}
+.toc-e .ttg{font-size:.72em;color:#666;margin-inline-start:.8em;white-space:nowrap}
+.toc-e .ta{font-size:.86em;color:#333;white-space:nowrap}
+.tp.pp .t1{font-size:calc(var(--fs)*2);margin-top:30%}
+.tp.pp .t3{margin-top:1.6em}
+.tp.pp .t5{margin-top:1.2em;font-family:var(--fb);font-size:calc(var(--fs)*.85);color:#555;letter-spacing:.08em}
+.tp.pp.v .t1{margin:0;padding-inline-start:16%}
+.tp.pp.v .t5{margin:0;align-self:flex-end;padding-inline-end:10%}
+.pieces{display:flex;flex-direction:column;border:2px solid var(--rule);background:var(--field);max-height:220px;overflow:auto}
+.pieces .it{display:grid;grid-template-columns:22px minmax(0,1fr) auto 22px 22px;gap:4px;align-items:center;padding:3px 6px;border-bottom:1px solid var(--soft);font-size:12px}
+.pieces .it:last-child{border-bottom:0}
+.pieces .it b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pieces .it small{color:var(--mut);font-family:var(--mono);white-space:nowrap}
+.pieces .it i{font:10px var(--mono);color:var(--mut);font-style:normal}
+.pieces button{border:0;background:transparent;padding:2px 0;font-size:11px}
+.pieces button:hover{background:var(--yel);color:#14151A}
 .pbody .ch.mid{margin-block-start:calc(var(--lhp)*2)}
 .pbody .sec2{font-family:var(--fh);font-weight:700;font-size:1.15em;line-height:var(--lhp);margin:0;margin-block:var(--lhp);text-indent:0;text-align:start}
 .pbody .scene{text-align:center;text-indent:0;margin-block:var(--lhp)}
@@ -222,14 +246,21 @@ table.syn td:last-child{color:var(--mut)}
     <section class="sec">
       <h2><i class="gl c"></i>稿件 <em id="cnt"></em></h2>
       <div class="tools">
-        <button class="btn blu" id="btnOpen">导入 txt / md</button>
+        <button class="btn blu" id="btnOpen" title="可一次选多个文件：每个文件算一篇">导入 txt / md</button>
+        <button class="btn flat" id="btnAppend" title="把新稿件接在现有稿件后面">追加稿件</button>
         <button class="btn flat" id="btnSampleA" title="陈独秀，1915，公版">示例：敬告青年</button>
-        <button class="btn flat" id="btnSampleB" title="演示粗体、着重号、注音、场景分隔">示例：标记演示</button>
+        <button class="btn flat" id="btnSampleC" title="三位作者的合志：标签行、后记、作者索引">示例：合志演示</button>
         <button class="btn flat" id="btnClear">清空</button>
       </div>
-      <input type="file" id="fileTxt" accept=".txt,.md,.markdown,text/plain" hidden>
+      <input type="file" id="fileTxt" accept=".txt,.md,.markdown,text/plain" multiple hidden>
       <textarea id="src" spellcheck="false" aria-label="正文"></textarea>
       <p class="note">示例《敬告青年》为公版文本，录自维基文库。直接粘贴你的全文即可。稿件和设置自动存在这台浏览器里，不上传。</p>
+    </section>
+
+    <section class="sec" id="pieceSec" hidden>
+      <h2><i class="gl b"></i>篇目 <em id="pieceCnt"></em></h2>
+      <div class="pieces" id="pieces"></div>
+      <p class="note">▲▼ 调整篇目顺序，会直接改动上面的稿件文本。多文件导入时文件名写成「作者 - 篇名.txt」会自动识别；前面加 01、02 可以控制顺序。</p>
     </section>
 
     <section class="sec">
@@ -244,6 +275,12 @@ table.syn td:last-child{color:var(--mut)}
         <tr><td>^^文字^^</td><td>着重号</td></tr>
         <tr><td>{汉字|注音}</td><td>注音（ruby）</td></tr>
         <tr><td>[图1]</td><td>独占一行：整页插图</td></tr>
+        <tr><td>[图1-40]</td><td>连续多页整页图（漫画稿）</td></tr>
+        <tr><td>&gt; 文字</td><td>篇末后记 / free talk，小字</td></tr>
+        <tr><td colspan="2" style="color:var(--ink);font-family:var(--ui);padding-top:8px">合志模式下：</td></tr>
+        <tr><td># 篇名</td><td>一篇的开始（## 变成篇内章节）</td></tr>
+        <tr><td>@ 作者 | 联系方式</td><td>写在篇名下一行，| 后面可省</td></tr>
+        <tr><td>% CP / 分级 / 预警</td><td>标签行，同时显示在目录里</td></tr>
       </table>
     </section>
 
@@ -262,7 +299,7 @@ table.syn td:last-child{color:var(--mut)}
       <div class="stack">
         <label for="tTitle">书名<input type="text" id="tTitle" data-s="tTitle"></label>
         <label for="tSub">副题<input type="text" id="tSub" data-s="tSub"></label>
-        <div class="pair"><label for="tAuthor">作者<input type="text" id="tAuthor" data-s="tAuthor"></label>
+        <div class="pair"><label for="tAuthor">作者 / 主编<input type="text" id="tAuthor" data-s="tAuthor"></label>
         <label for="tCircle">社团 / 出版<input type="text" id="tCircle" data-s="tCircle"></label></div>
         <label for="ded">献词页（留空则不生成）<textarea id="ded" data-s="ded" rows="2"></textarea></label>
       </div>
@@ -310,6 +347,17 @@ table.syn td:last-child{color:var(--mut)}
       <div class="seg" data-seg="mode">
         <button data-v="h">横排<small>左翻</small></button>
         <button data-v="v">竖排<small>右翻</small></button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2><i class="gl t"></i>合志模式 <em>多作者</em></h2>
+      <div class="chk"><label for="anth"><input type="checkbox" id="anth" data-s="anth"> 开启：# 是一篇，@ 是作者</label></div>
+      <div id="anthBox" class="stack">
+        <div class="seg" data-seg="pieceOpen"><button data-v="block">页首标题块<small>省页数</small></button><button data-v="page">独立篇章页<small>更正式</small></button></div>
+        <div class="chk"><label for="aIndex"><input type="checkbox" id="aIndex" data-s="aIndex"> 书末作者索引</label></div>
+        <label class="row" for="aIndexTitle"><span>索引标题</span><input type="text" id="aIndexTitle" data-s="aIndexTitle"></label>
+        <p class="note">页眉：双数页刊名，单数页「篇名 · 作者」。目录每条带作者和标签。</p>
       </div>
     </section>
 
@@ -412,7 +460,7 @@ async function prepFonts(text){
 }
 
 /* ================= settings ================= */
-const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
+const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',anth:false,pieceOpen:'block',aIndex:true,aIndexTitle:'作者索引',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
 const SAMPLE_A=`# 敬告青年
 
 竊以少年老成，中國稱人之語也；年長而勿衰（Keep young while growing old），英美人相勗之辭也。此亦東西民族涉想不同現象趨異之一端歟？青年如初春，如朝日，如百卉之萌動，如利刃之新發於硎，人生最可寶貴之時期也。青年之於社會，猶新鮮活潑細胞之在人身，新陳代謝，陳腐朽敗者無時不在天然淘汰之途，與新鮮活潑者以空間之位置及時間之生命。人身遵新陳代謝之道則健康，陳腐朽敗之細胞充塞人身則人身死；社會遵新陳代謝之道則隆盛，陳腐朽敗之分子充塞社會則社會亡。
@@ -443,91 +491,67 @@ const SAMPLE_A=`# 敬告青年
 
 科學者何？吾人對於事物之概念，綜合客觀之現象，訴之主觀之理性而不矛盾之謂也。想像者何？既超脫客觀之現象，復拋棄主觀之理性，憑空構造，有假定而無實證，不可以人間已有之智靈，明其理由道其法則者也。在昔蒙昧之世，當今淺化之民，有想像而無科學。宗教美文，皆想像時代之產物。近代歐洲之所以優越他族者，科學之興，其功不在人權說下，若舟車之有兩輪焉。今且日新月異，舉凡一事之興，一物之細，罔不訴之科學法則，以定其得失從違，其效將使人間之思想云爲一遵理性，而迷信斬焉，而無知妄作之風息焉。國人而欲脫蒙昧時代，羞爲淺化之民也，則急起直追，當以科學與人權並重。士不知科學，故襲陰陽家符瑞五行之說，惑世誣民，地氣風水之談，乞靈枯骨；農不知科學，故無擇種去蟲之術；工不知科學，故貨棄於地，戰鬥生事之所需，一一仰給於異國；商不知科學，故惟識罔取近利，未來之勝算，無容心焉；醫不知科學，既不解人身之構造，復不事藥性之分析，菌毒傳染，更無聞焉，惟知附會五行生剋寒熱陰陽之說，襲古方以投藥餌，其術殆與矢人同科，其想像之最神奇者，莫如「氣」之一說，其說且通於力士羽流之術，試遍索宇宙間，誠不知此「氣」之果爲何物也？凡此無常識之思維，無理由之信仰，欲根治之，厥維科學。夫以科學說明眞理，事事求諸証實，較之想像武斷之所爲，其步度誠緩，然其步步皆踏實地，不若幻想突飛者之終無寸進也。宇宙間之事理無窮，科學領土內之膏腴待辟者，正自廣闊，青年勉乎哉！
 `;
-const SAMPLE_B=`# 第一章 到站
 
-列车在23点07分进站。站台上没有人。
+const SAMPLE_C=`# 雨停之前
+@ 白榆 | 联系方式写在这里
+% 原创 / 全年龄
 
-他提着一只箱子下车。箱子很轻，里面是两件衬衣、一本地图、一封没有拆开的信。
+雨下到第三天，茶馆里只剩两个人。
 
-“先生，末班车已经走了。”值班员说。
+老板在柜台后面擦杯子。客人坐在靠窗的位置，面前的茶已经凉了。
 
-“我知道。”
+“还续吗？”
 
-“旅馆在桥那边，走路12分钟。”
+“不续。等雨停。”
 
-他点头，没有问价钱。值班员看了他一眼，把窗口的灯关了。
+“这雨停不了。”
 
-桥是铁的。桥下的水不动。他在桥中间停下，把信拿出来，看了看信封上的字，又放回去。字是他自己写的。收信人也是他自己。
+“那就等到打烊。”
 
-旅馆只有一个房间亮着灯。柜台后面的女人没有抬头，推过来一本登记簿。他写了名字，日期写的是1998年。
+老板没有再问。他把灯调暗了一格。
 
-“今年不是1998年。”女人说。
+窗外有人撑伞走过，走到街角，收了伞，站在雨里。客人看了很久，直到那个人被雨遮住。
 
-“我知道。”他说，“我只是还^^没有^^离开那一年。”
+打烊的时候雨还在下。客人付了两个人的茶钱。
 
-女人把钥匙放在簿子上。7号房，三楼，走廊尽头。
+> 写于去年冬天。窗外那个人是谁，我也不知道。
 
----
+# 借书卡
+@ 沈渡
+% 原创 / 全年龄 / 校园
 
-房间里有一张床、一把椅子、一扇朝北的窗。他没有开灯。他坐在椅子上，等天亮。
+## 一
 
-天没有亮得更快。
+图书馆的借书卡上，他的名字前面总是同一个名字。
 
-# 第二章 清点
+不管他借哪一本，那个名字都先到一步。字迹很小，向右倾斜，日期总是早他三天。
 
-## 箱子
+## 二
 
-早晨六点，他把箱子打开，把东西一件一件放在床上。
+他开始挑冷门的书。地方志，水文年鉴，一本没有人翻过的^^潮汐表^^。
 
-衬衣，两件。地图，一本，{泰晤士|Thames}河以南的部分被人撕掉了。信，一封。
+潮汐表的借书卡上只有一行。还是那个名字，日期是三天前。
 
-还有一样东西他不记得装过：一张车票，终点是这里，日期是明天。
+## 三
 
-他把车票翻过来。背面有一行铅笔字：**不要拆那封信。**
+他在那一行下面写了自己的名字，然后在旁边加了一句：**下一本你挑。**
 
-笔迹是他的。
+三天后他去还书。卡片上多了一行书名。
 
-## 柜台
+> 这篇的原型是我中学图书馆的真事，只是我到毕业也没等到回信。
+> 感谢主催催稿。
 
-他下楼。柜台后面换了一个男人。
+# 末班
+@ 白榆
+% 原创 / 全年龄
 
-“昨晚那位女士呢？”
+站台上的钟慢了四分钟。所有人都知道，所以所有人都提前四分钟到。
 
-“这里没有女士。”男人说，“这里30年只有我一个人。”
+只有一个人每天准点来，每天错过末班车，每天走回去。
 
-“登记簿能给我看一下吗？”
+有人问他为什么不早一点。
 
-男人把簿子推过来。最后一行是他的名字。日期那一栏是空的。
-
-他没有再问。他付了两天的房钱，要了一壶茶。
-
-茶是凉的。他喝完了。
-
-# 第三章 明天
-
-他在镇上走了一天。镇子很小，一条街，一座桥，一个车站。每个人都认识他，每个人都叫他另一个名字。
-
-他没有纠正。
-
-傍晚他回到车站。值班员在窗口后面，灯亮着。
-
-“先生，末班车23点07分到。”
-
-“我是来坐车的，不是来接人的。”
-
-“这一站只有到达，没有出发。”值班员说，“您昨天就知道了。”
-
-他在长椅上坐下，把信拿出来。信封已经软了。
-
-23点07分，列车进站。车门打开，一个人提着一只箱子下车。
-
-那个人没有看他。
-
-他把信拆开。信纸上只有一行字，是明天的日期。
-
-他把信纸折好，放进那个人留在站台上的箱子里，然后上了车。
-
-车门关上。站台上没有人。
+“我不赶车。”他说，“我只是来看它开走。”
 `;
 let S=Object.assign({},DEF),imgs=[];
 function load(){try{const o=JSON.parse(localStorage.getItem(LSKEY)||'null');if(o&&o.S){S=Object.assign({},DEF,o.S);return typeof o.text==='string'?o.text:SAMPLE_A;}}catch(_){}return SAMPLE_A;}
@@ -553,17 +577,21 @@ function inline(t){
   return h;
 }
 function parse(text){
-  const out=[];let blanks=0;
+  const out=[];let blanks=0,piece=null;
   text.replace(/\r\n?/g,'\n').split('\n').forEach(raw=>{
     const line=raw.replace(/^[\s　]+|[\s　]+$/g,'');
     if(!line){blanks++;return;}
     if(S.keepBlank&&out.length)for(let i=0;i<Math.min(blanks,4);i++)out.push({t:'blank'});
     blanks=0;let m;
-    if((m=line.match(/^(#{1,2})\s*(.+)$/)))out.push({t:m[1].length===1?'h1':'h2',text:m[2],html:inline(m[2])});
+    if((m=line.match(/^(#{1,2})\s*(.+)$/))){const b={t:m[1].length===1?'h1':'h2',text:m[2],html:inline(m[2])};out.push(b);if(b.t==='h1')piece=b;}
+    else if(S.anth&&piece&&(m=line.match(/^[@＠]\s*(.+)$/))){const a=m[1].split(/[|｜]/);piece.author=a[0].trim();piece.contact=(a[1]||'').trim();}
+    else if(S.anth&&piece&&(m=line.match(/^[%％]\s*(.+)$/)))piece.tags=m[1].trim();
+    else if((m=line.match(/^[>＞]\s*(.+)$/)))out.push({t:'after',html:inline(m[1]),first:!out.length||out[out.length-1].t!=='after'});
+    else if((m=line.match(/^\[图\s*(\d+)\s*[-–~～]\s*(\d+)\]$/))){const a=+m[1],z=Math.min(+m[2],a+399);for(let i=a;i<=z;i++)out.push({t:'img',n:i});}
     else if(/^(-{3,}|\*{3,}|＊{3,}|—{3,})$/.test(line))out.push({t:'scene'});
     else if(/^={3,}$/.test(line))out.push({t:'break'});
     else if((m=line.match(/^\[图\s*(\d+)\]$/)))out.push({t:'img',n:+m[1]});
-    else if(S.autoCh&&line.length<=30&&RE_CH.test(line))out.push({t:'h1',text:line,html:inline(line)});
+    else if(S.autoCh&&line.length<=30&&RE_CH.test(line)){const b={t:S.anth?'h2':'h1',text:line,html:inline(line)};out.push(b);if(b.t==='h1')piece=b;}
     else out.push({t:'p',html:inline(line)});
   });
   return out;
@@ -640,10 +668,15 @@ function findSplit(el,body){
 }
 function render(b,entries){
   if(b.t==='p'){const e=mk('p','',b.html);return e;}
-  if(b.t==='h1'||b.t==='h2'){const e=mk(b.t==='h1'?'h2':'h3',b.t==='h1'?'ch':'sec2',b.html);e._entry={lvl:b.t==='h1'?1:2,text:b.text,el:e};entries.push(e._entry);return e;}
+  if(b.t==='h1'||b.t==='h2'){
+    const piece=b.t==='h1'&&S.anth;
+    const e=piece?mk('div','ch piece',`<span class="pt">${b.html}</span>${b.author?`<span class="au">${esc(b.author)}</span>`:''}${b.tags?`<span class="tg">${esc(b.tags)}</span>`:''}`):mk(b.t==='h1'?'h2':'h3',b.t==='h1'?'ch':'sec2',b.html);
+    entries.push({lvl:b.t==='h1'?1:2,text:b.text,el:e,b});return e;}
+  if(b.t==='after')return mk('p','after'+(b.first?' first':''),b.html);
+  if(b.t==='aidx')return mk('div','aidx',`<div class="an">${esc(b.name)}${b.contact?`<small>${esc(b.contact)}</small>`:''}</div>`+b.items.map(i=>`<div class="toc-e l2"><span class="tt">${esc(i.text)}</span><span class="ld">${'·'.repeat(160)}</span><span class="pn">${i.disp}</span></div>`).join(''));
   if(b.t==='scene')return mk('div','scene','＊　＊　＊');
   if(b.t==='blank')return mk('p','blankline','&nbsp;');
-  if(b.t==='toc'){const e=mk('div','toc-e'+(b.lvl===2?' l2':''),`<span class="tt">${esc(b.text)}</span><span class="ld">${'·'.repeat(160)}</span><span class="pn">000</span>`);b.entry.tocEl=e;return e;}
+  if(b.t==='toc'){const e=mk('div','toc-e'+(b.lvl===2?' l2':''),`<span class="tt">${esc(b.text)}${b.entry.tags?`<small class="ttg">${esc(b.entry.tags)}</small>`:''}</span><span class="ld">${'·'.repeat(160)}</span>${b.entry.author?`<span class="ta">${esc(b.entry.author)}</span>`:''}<span class="pn">000</span>`);b.entry.tocEl=e;return e;}
   if(b.t==='toch')return mk('h2','ch',esc(b.text));
   return mk('p');
 }
@@ -667,13 +700,21 @@ async function flow(root,blocks,kind,ctx){
     if(ctx.cancelled())return false;
     if(b.t==='break'){if(pg&&pg.body.children.length)open();continue;}
     if(b.t==='img'){illQ.push(b.n);if(!pg||!pg.body.children.length){if(pg){pages.pop();pg.box.remove();pg=null;}flushIll();}continue;}
+    if(b.t==='h1'&&kind==='body'&&S.anth&&S.pieceOpen==='page'){      // a whole page announces the piece; its text starts overleaf
+      if(pg&&!pg.body.children.length&&pages[pages.length-1]===pg){pages.pop();pg.box.remove();}
+      pg=null;flushIll();
+      if(S.chBreak==='recto'&&pages.length%2===1)newSheet(root,'blank');
+      const pp=newSheet(root,'piece'),d=mk('div','tp pp'+(G.v?' v':''),`<div class="t1">${b.html}</div>${b.author?`<div class="t3">${esc(b.author)}</div>`:''}${b.tags?`<div class="t5">${esc(b.tags)}</div>`:''}`);
+      d.style.cssText=areaStyle(pp);pp.page.appendChild(d);ctx.entries.push({lvl:1,text:b.text,el:d,b});
+      chap=b.text+(b.author?' · '+b.author:'');continue;
+    }
     if(!pg)open();
     if(b.t==='h1'&&kind==='body'){
       if(S.chBreak!=='none'&&pg.body.children.length)open();
       if(S.chBreak==='recto'&&pg.no%2===0){pages.pop();pg.box.remove();flushIll();newSheet(root,'blank');open();}
-      chap=b.text;
+      chap=S.anth?b.text+(b.author?' · '+b.author:''):b.text;
     }
-    if(b.t==='h2'&&kind==='body')chap=b.text;
+    if(b.t==='h2'&&kind==='body'&&!S.anth)chap=b.text;
     let el=render(b,ctx.entries);
     if(b.t==='blank'&&!pg.body.children.length)continue;
     pg.body.appendChild(el);
@@ -682,7 +723,7 @@ async function flow(root,blocks,kind,ctx){
     let guard=0;
     while(over(el,pg.body,tol)&&guard++<400){
       const only=pg.body.children.length===1;
-      const sp=b.t==='p'?findSplit(el,pg.body):null;
+      const sp=(b.t==='p'||b.t==='after')?findSplit(el,pg.body):null;
       if(sp===-1)break;
       if(sp===null){
         if(only)break;                           // cannot shrink further: accept
@@ -707,12 +748,13 @@ function titlePage(pg){
   d.style.cssText=areaStyle(pg);pg.page.appendChild(d);
 }
 function dedPage(pg){const d=mk('div','ded'+(G.v?' v':''),esc(S.ded));d.style.cssText=areaStyle(pg);pg.page.appendChild(d);}
+let authorsLine='';
 function coloPage(pg){
-  const rows=[['书名',S.tTitle],['作者',S.tAuthor],['封面 / 插画',S.cCover],['排版',S.cTypeset],['发行',S.tCircle],['发行日',S.cDate],['印刷',S.cPrint],['联系',S.cContact]].filter(r=>r[1]);
+  const rows=[['书名',S.tTitle],[S.anth?'主编':'作者',S.tAuthor],['执笔',S.anth?authorsLine:''],['封面 / 插画',S.cCover],['排版',S.cTypeset],['发行',S.tCircle],['发行日',S.cDate],['印刷',S.cPrint],['联系',S.cContact]].filter(r=>r[1]);
   const d=mk('div','colo',`<h4>${esc(S.tTitle||'')}</h4><dl>${rows.map(r=>`<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>${S.cNote?`<p class="cn">${esc(S.cNote)}</p>`:''}<div class="imp">Typeset with K&amp;S Pulpwerk · Kirkland &amp; Sunshine</div>`);
   d.style.cssText=areaStyle(pg);pg.page.appendChild(d);
 }
-const TAG={title:'扉页',blank:'空白',ded:'献词',toc:'目录',body:'',ill:'插图',colo:'版权页'};
+const TAG={piece:'篇章页',idx:'作者索引',title:'扉页',blank:'空白',ded:'献词',toc:'目录',body:'',ill:'插图',colo:'版权页'};
 
 /* ================= orchestrate ================= */
 let token=0,timer=0,lastPages=0;
@@ -724,11 +766,12 @@ async function paginate(){
   await prepFonts(text);if(cancelled())return;
   G=calcGeom();
   const bench=$('bench');bench.innerHTML='';const root=mk('div','spreads');bench.appendChild(root);applyVars(root);
-  pages=[];const blocks=parse(text),entries=[],tick=n=>{$('busy').textContent='排版中 · 第 '+n+' 页';};
+  pages=[];const blocks=parse(text);authorsLine=Array.from(new Set(blocks.filter(b=>b.t==='h1'&&b.author).map(b=>b.author))).join('、');
+  const entries=[],tick=n=>{$('busy').textContent='排版中 · 第 '+n+' 页';};
   if(S.tpOn){titlePage(newSheet(root,'title'));if(S.coPos==='front')coloPage(newSheet(root,'colo'));else newSheet(root,'blank');}
   else if(S.coPos==='front'){coloPage(newSheet(root,'colo'));}
   if(S.ded.trim()){ensureRecto(root);dedPage(newSheet(root,'ded'));}
-  const heads=blocks.filter(b=>b.t==='h1'||b.t==='h2');
+  const heads=blocks.filter(b=>b.t==='h1'||(b.t==='h2'&&!S.anth));
   const tocBlocks=[];
   if(S.toc&&heads.length){
     ensureRecto(root);tocBlocks.push({t:'toch',text:S.tocTitle||'目录'});
@@ -738,14 +781,22 @@ async function paginate(){
   ensureRecto(root);
   const bodyStart=pages.length+1;
   if(!await flow(root,blocks,'body',{entries,cancelled,tick,chap:''}))return;
+  const disp=no=>S.pnStart==='book'?no:no-bodyStart+1;
+  const pageOf=e=>+e.el.closest('.sheetbox').dataset.no;
+  const bodyEnd=pages.length;
+  if(S.anth&&S.aIndex){
+    const au=new Map();
+    entries.filter(e=>e.lvl===1&&e.b.author).forEach(e=>{const k=e.b.author;if(!au.has(k))au.set(k,{contact:'',items:[]});const v=au.get(k);if(e.b.contact)v.contact=e.b.contact;v.items.push({text:e.text,disp:disp(pageOf(e))});});
+    if(au.size){const ib=[{t:'toch',text:S.aIndexTitle||'作者索引'}];au.forEach((v,name)=>ib.push({t:'aidx',name,contact:v.contact,items:v.items}));
+      if(!await flow(root,ib,'idx',{entries:[],cancelled,tick,chap:''}))return;}
+  }
   if(S.coPos==='end'){while((pages.length+1)%S.pad)newSheet(root,'blank');coloPage(newSheet(root,'colo'));}
   else while(pages.length%S.pad)newSheet(root,'blank');
   /* numbers, running heads, table of contents */
-  const disp=no=>S.pnStart==='book'?no:no-bodyStart+1;
-  entries.forEach((e,i)=>{const no=+e.el.closest('.sheetbox').dataset.no,h=heads[i];if(h&&h.tocEl)h.tocEl.querySelector('.pn').textContent=disp(no);});
+  entries.forEach(e=>{if(e.b.tocEl)e.b.tocEl.querySelector('.pn').textContent=disp(pageOf(e));});
   pages.forEach(pg=>{
     pg.box.dataset.tag='P'+pg.no+(TAG[pg.kind]?' · '+TAG[pg.kind]:'');
-    if(pg.kind!=='body'&&pg.kind!=='toc')return;
+    if(pg.kind!=='body'&&pg.kind!=='toc'&&pg.kind!=='idx')return;
     const d=disp(pg.no),bx=bodyBox(pg.no),outerLeft=!innerLeft(pg.no);
     if(S.header&&pg.kind==='body'&&!pg.opening){
       const txt=pg.no%2===0?S.tTitle:(pg.chap||S.tTitle);
@@ -767,23 +818,41 @@ async function paginate(){
   lastPages=pages.length;$('busy').hidden=true;
   const chars=text.replace(/\s/g,'').length,ms=Math.round(performance.now()-t0);
   $('cnt').textContent=chars.toLocaleString()+' 字';
-  $('readout').innerHTML=`<span>总页数 <b>${pages.length}</b></span><span>正文 <b>${pages.length-bodyStart+1-(S.coPos==='end'?1:0)}</b> 页</span><span>版心 <b>${G.N} 字 × ${G.M} 行</b></span><span>排版 <b>${(ms/1000).toFixed(1)} s</b></span>`;
+  $('readout').innerHTML=`<span>总页数 <b>${pages.length}</b></span><span>正文 <b>${bodyEnd-bodyStart+1}</b> 页</span>${S.anth?`<span>篇数 <b>${entries.filter(e=>e.lvl===1).length}</b></span>`:''}<span>版心 <b>${G.N} 字 × ${G.M} 行</b></span><span>排版 <b>${(ms/1000).toFixed(1)} s</b></span>`;
   $('calc').innerHTML=`每行 <b>${G.N}</b> 字 · 每页 <b>${G.M}</b> 行<br>版心 ${r1(G.bwMm)} × ${r1(G.bhMm)} mm · 满页约 ${G.N*G.M} 字`;
   $('goPage').max=pages.length;
+  renderPieces(entries.filter(e=>e.lvl===1).map(e=>({text:e.text,author:e.b.author||'',no:disp(pageOf(e))})));
   $('toCover').href='https://wardenrot.github.io/ks-coverwerk/?pages='+pages.length+'&size='+S.size+'&bind='+(G.v?'right':'left');
   $('toCover').title='带着页数 '+pages.length+' 去封面工具，自动算书脊';
 }
 
 /* ================= UI ================= */
 function fillSelect(id,list){$(id).innerHTML=list.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');}
+function splitPieces(text){
+  const segs=[];let cur={head:false,lines:[]};
+  text.replace(/\r\n?/g,'\n').split('\n').forEach(l=>{if(/^\s*#(?!#)\s*\S/.test(l)){segs.push(cur);cur={head:true,lines:[l]};}else cur.lines.push(l);});
+  segs.push(cur);return {pre:segs[0],pieces:segs.slice(1)};
+}
+function movePiece(i,d){
+  const sp=splitPieces($('src').value),j=i+d;if(j<0||j>=sp.pieces.length)return;
+  [sp.pieces[i],sp.pieces[j]]=[sp.pieces[j],sp.pieces[i]];
+  const join=x=>x.lines.join('\n').replace(/\n+$/,'')+'\n\n';
+  $('src').value=(sp.pre.lines.join('\n').trim()?join(sp.pre):'')+sp.pieces.map(join).join('');schedule(0);
+}
+function renderPieces(list){
+  $('pieceSec').hidden=!S.anth;if(!S.anth)return;
+  $('pieceCnt').textContent=list.length+' 篇';
+  $('pieces').innerHTML=list.length?list.map((p,i)=>`<div class="it"><i>${i+1}</i><b title="${esc(p.text)}">${esc(p.text)}${p.author?' · '+esc(p.author):''}</b><small>P${p.no}</small><button data-mv="${i},-1" aria-label="上移">▲</button><button data-mv="${i},1" aria-label="下移">▼</button></div>`).join(''):'<div class="empty">还没有篇目。用「# 篇名」开始一篇。</div>';
+}
 function syncUI(){
+  $('anthBox').hidden=!S.anth;
   document.querySelectorAll('[data-s]').forEach(e=>{const k=e.dataset.s;if(e.type==='checkbox')e.checked=!!S[k];else e.value=S[k];});
   document.querySelectorAll('[data-seg]').forEach(g=>[...g.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(S[g.dataset.seg])))));
 }
 document.addEventListener('input',e=>{
   const t=e.target,k=t.dataset&&t.dataset.s;if(!k)return;
   let v=t.type==='checkbox'?t.checked:t.value;
-  if(t.type==='number'||t.dataset.n){v=parseFloat(v);if(!isFinite(v))return;if(t.min!=='')v=Math.max(+t.min,v);if(t.max!=='')v=Math.min(+t.max,v);}
+  if(t.type==='number'||t.dataset.n){v=parseFloat(v);if(!isFinite(v))return;if(t.min)v=Math.max(+t.min,v);if(t.max)v=Math.min(+t.max,v);}
   S[k]=v;save();schedule(t.type==='text'||t.tagName==='TEXTAREA'?700:350);
 });
 document.addEventListener('click',e=>{
@@ -792,14 +861,31 @@ document.addEventListener('click',e=>{
 });
 $('src').addEventListener('input',()=>{save();schedule($('src').value.length>20000?1600:700);});
 $('btnRe').onclick=()=>schedule(0);
-$('btnOpen').onclick=()=>$('fileTxt').click();
-$('fileTxt').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
-  const buf=await f.arrayBuffer();let txt;
-  try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(_){try{txt=new TextDecoder('gb18030').decode(buf);}catch(__){txt=new TextDecoder().decode(buf);}}
-  $('src').value=txt.replace(/^﻿/,'');if(!S.tTitle||S.tTitle===DEF.tTitle){S.tTitle=f.name.replace(/\.[^.]+$/,'');syncUI();}
-  toast('已导入 '+f.name+' · '+txt.replace(/\s/g,'').length.toLocaleString()+' 字');schedule(0);};
-$('btnSampleA').onclick=()=>{$('src').value=SAMPLE_A;Object.assign(S,{mode:'v',tTitle:DEF.tTitle,tSub:DEF.tSub,tAuthor:DEF.tAuthor});syncUI();schedule(0);};
-$('btnSampleB').onclick=()=>{$('src').value=SAMPLE_B;Object.assign(S,{mode:'h',tTitle:'末班车之后',tSub:'一个短篇',tAuthor:'作者名'});syncUI();schedule(0);};
+$('pieces').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(!b)return;const [i,d]=b.dataset.mv.split(',').map(Number);movePiece(i,d);});
+document.addEventListener('change',e=>{if(e.target.id==='anth')syncUI();});
+async function readTxt(f){const buf=await f.arrayBuffer();let t;
+  try{t=new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(_){try{t=new TextDecoder('gb18030').decode(buf);}catch(__){t=new TextDecoder().decode(buf);}}
+  return t.replace(/^\uFEFF/,'');}
+function pieceFromFile(name,txt){
+  const base=name.replace(/\.[^.]+$/,'').replace(/^\d+[\s._、-]*/,''),parts=base.split(/\s*[-－—–]\s*/),body=txt.trim();
+  if(/^\s*#(?!#)\s*\S/.test(body))return body;
+  const author=parts.length>1?parts[0].trim():'',title=(parts.length>1?parts.slice(1).join(' - '):base).trim();
+  return '# '+title+'\n'+(author?'@ '+author+'\n':'')+'\n'+body;
+}
+let appendMode=false;
+$('btnAppend').onclick=()=>{appendMode=true;$('fileTxt').click();};
+$('btnOpen').onclick=()=>{appendMode=false;$('fileTxt').click();};
+$('fileTxt').onchange=async e=>{
+  const files=[...e.target.files].sort((a,b)=>a.name.localeCompare(b.name,'zh',{numeric:true}));e.target.value='';if(!files.length)return;
+  const multi=files.length>1||appendMode;let chars=0;const parts=[];
+  for(const f of files){const t=await readTxt(f);chars+=t.replace(/\s/g,'').length;parts.push(multi?pieceFromFile(f.name,t):t);}
+  const add=parts.join('\n\n')+'\n';
+  $('src').value=appendMode&&$('src').value.trim()?$('src').value.replace(/\s+$/,'')+'\n\n'+add:add;
+  if(multi&&!S.anth){S.anth=true;syncUI();}
+  if(!multi&&(!S.tTitle||S.tTitle===DEF.tTitle)){S.tTitle=files[0].name.replace(/\.[^.]+$/,'');syncUI();}
+  toast((appendMode?'已追加 ':'已导入 ')+files.length+' 个文件 · '+chars.toLocaleString()+' 字'+(multi?' · 已开启合志模式':''));appendMode=false;schedule(0);};
+$('btnSampleA').onclick=()=>{$('src').value=SAMPLE_A;Object.assign(S,{anth:false,mode:'v',tTitle:DEF.tTitle,tSub:DEF.tSub,tAuthor:DEF.tAuthor});syncUI();schedule(0);};
+$('btnSampleC').onclick=()=>{$('src').value=SAMPLE_C;Object.assign(S,{anth:true,mode:'h',tTitle:'茶与雨',tSub:'原创短篇合志 · 第一期',tAuthor:'主编名'});syncUI();schedule(0);};
 $('btnClear').onclick=()=>{$('src').value='';schedule(0);};
 $('btnImg').onclick=()=>$('fileImg').click();
 $('fileImg').onchange=e=>{[...e.target.files].filter(f=>f.type.startsWith('image/')).forEach(f=>imgs.push({url:URL.createObjectURL(f),name:f.name}));e.target.value='';renderImgs();schedule(0);};
