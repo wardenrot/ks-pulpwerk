@@ -525,7 +525,7 @@ function linkFont(name,weights){
     const make=plain=>{const l=document.createElement('link');l.rel='stylesheet';
       l.href='https://fonts.googleapis.com/css2?family='+name.replace(/ /g,'+')+(!plain&&weights&&weights.length>1?':wght@'+weights.join(';'):'')+'&display=swap';
       l.onload=()=>res(true);l.onerror=()=>{l.remove();plain?res(false):make(true);};document.head.appendChild(l);};
-    make(false);setTimeout(()=>res(false),8000);
+    make(false);setTimeout(()=>res(false),20000);
   });
 }
 linkFont('Jost',[400,500,700,800]);linkFont('DM Mono',[400,500]);linkFont('Noto Sans SC',[400,700]);
@@ -536,8 +536,17 @@ async function prepFonts(text){
   await Promise.all([linkFont(fb[0],fb[2]),linkFont(fh[0],fh[2])]);
   const uniq=Array.from(new Set(text+S.tTitle+S.tSub+S.tAuthor+S.tCircle+S.ded+S.cNote+S.tocTitle+'0123456789＊·')).join('').replace(/\s/g,'');
   const jobs=[document.fonts.load(`400 12pt "${fb[0]}"`,uniq),document.fonts.load(`${fb[2][1]||400} 12pt "${fb[0]}"`,uniq.slice(0,400)),document.fonts.load(`${fh[2][1]||400} 12pt "${fh[0]}"`,uniq.slice(0,600))];
-  await Promise.race([Promise.all(jobs).catch(()=>{}),new Promise(r=>setTimeout(r,15000))]);
+  await Promise.race([Promise.all(jobs).catch(()=>{}).then(()=>document.fonts.ready),new Promise(r=>setTimeout(r,40000))]);
+  await new Promise(r=>setTimeout(r,0));               // let the loadingdone events of this batch drain before we start measuring
 }
+/* fonts that arrive after measuring began would reflow the pages under our feet: note it, re-run once they are in */
+let measuring=false,lateFonts=false,autoRuns=0;
+if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',e=>{
+  const mine=new Set([fdef(S.fontBody)[0],fdef(S.fontHead)[0]]);
+  if(!(e.fontfaces||[]).some(f=>mine.has(String(f.family).replace(/^["']|["']$/g,''))))return;
+  if(measuring)lateFonts=true;
+  else if(document.getElementById('spreads')&&document.getElementById('spreads').classList.contains('done')&&autoRuns<3){autoRuns++;console.log('pulpwerk: fonts arrived after layout → rerun '+autoRuns);paginate();}
+});
 
 /* ================= settings ================= */
 const DEF={size:'A5',mode:'v',fontBody:'Noto Serif SC',fontHead:'Noto Serif SC',fs:10,lh:1.75,mT:20,mB:20,mI:20,mO:16,bleed:0,indent:2,paraGap:0,keepBlank:false,crop:false,autoCh:true,vQuotes:true,tcy:true,chBreak:'page',chAlign:'center',chSink:3,toc:true,tocTitle:'目录',header:true,headRule:true,pnPos:'bc',pnStart:'book',pad:4,illFit:'cover',tpOn:true,tTitle:'敬告青年',tSub:'一九一五年 ·《青年雜誌》第一卷第一號',tAuthor:'陳獨秀',tCircle:'Kirkland & Sunshine',ded:'',anth:false,pieceOpen:'block',aIndex:true,aIndexTitle:'作者索引',coPos:'end',cCover:'',cTypeset:'',cDate:'',cPrint:'',cContact:'',cNote:'本书为非官方同人作品，与原作及相关权利方无关。\n禁止转载、翻印与网络上传。'};
@@ -844,12 +853,18 @@ const TAG={piece:'篇章页',idx:'作者索引',title:'扉页',blank:'空白',de
 
 /* ================= orchestrate ================= */
 let token=0,timer=0,lastPages=0;
-function schedule(ms){clearTimeout(timer);timer=setTimeout(paginate,ms==null?500:ms);}
+function schedule(ms){clearTimeout(timer);autoRuns=0;timer=setTimeout(paginate,ms==null?500:ms);}
+/* audit: every text body must end inside its box; returns the page numbers that do not */
+function audit(){
+  const bad=[];pages.forEach(pg=>{const b=pg.body,last=b&&b.lastElementChild;if(last&&over(last,b,0.6*view.z))bad.push(pg.no);});return bad;
+}
 async function paginate(){
   const my=++token,cancelled=()=>my!==token,text=$('src').value;
   $('busy').hidden=false;$('busy').textContent='字体加载中…';save();
   const t0=performance.now();
-  await prepFonts(text);if(cancelled())return;
+  measuring=false;await prepFonts(text);if(cancelled())return;
+  measuring=true;lateFonts=false;
+  const done=()=>{measuring=false;};
   G=calcGeom();
   const bench=$('bench');bench.innerHTML='';const root=mk('div','spreads');bench.appendChild(root);applyVars(root);
   pages=[];const blocks=parse(text);authorsLine=Array.from(new Set(blocks.filter(b=>b.t==='h1'&&b.author).map(b=>b.author))).join('、');
@@ -896,12 +911,21 @@ async function paginate(){
     }
   });
   if(cancelled())return;
+  /* fonts that landed while we measured, or a body that still spills: measure again, up to three times */
+  await new Promise(r=>setTimeout(r,0));if(cancelled())return;
+  const bad=audit();done();
+  if((lateFonts||bad.length)&&autoRuns<3){
+    autoRuns++;$('busy').textContent='字体到齐，重新排版…';console.log('pulpwerk: late fonts='+lateFonts+' overflow pages='+bad.join(',')+' → rerun '+autoRuns);
+    if(document.fonts&&document.fonts.status==='loading')await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,20000))]);
+    if(cancelled())return;return paginate();
+  }
   /* swap in */
   const wrap=$('wrap'),old=$('spreads'),ratio=wrap.scrollHeight>wrap.clientHeight?wrap.scrollTop/(wrap.scrollHeight-wrap.clientHeight):0;
   root.id='spreads';old.replaceWith(root);fitZoom();root.classList.add('done');
   wrap.scrollTop=ratio*(wrap.scrollHeight-wrap.clientHeight);
   $('pageRule').textContent=`@page{size:${G.SW}mm ${G.SH}mm;margin:0}`;
   lastPages=pages.length;$('busy').hidden=true;
+  if(bad.length)toast('第 '+bad.slice(0,6).join('、')+' 页末行溢出，请截图反馈',8000);
   const chars=text.replace(/\s/g,'').length,ms=Math.round(performance.now()-t0);
   $('cnt').textContent=chars.toLocaleString()+' 字';
   $('readout').innerHTML=`<span>总页数 <b>${pages.length}</b></span><span>正文 <b>${bodyEnd-bodyStart+1}</b> 页</span>${S.anth?`<span>篇数 <b>${entries.filter(e=>e.lvl===1).length}</b></span>`:''}<span>版心 <b>${G.N} 字 × ${G.M} 行</b></span><span>排版 <b>${(ms/1000).toFixed(1)} s</b></span>`;
