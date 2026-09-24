@@ -730,7 +730,7 @@ function textMap(el){
 }
 function locate(tm,i){for(const x of tm.a)if(i<x.e)return {node:x.n,off:i-x.s};const l=tm.a[tm.a.length-1];return {node:l.n,off:l.n.data.length};}
 /* first character index whose line lies beyond the body's block-end edge; null = whole block must move; -1 = fits */
-function findSplit(el,body){
+function findSplit(el,body,only){
   const tm=textMap(el);if(!tm.total)return null;
   const br=body.getBoundingClientRect(),lim=G.v?br.left:br.bottom,rng=document.createRange();
   const half=0.45*S.fs*(96/72)*view.z,tol=0.6*view.z;   // judge by the glyph's em box, so annotations that stretch a line cannot push ink into the margin
@@ -738,6 +738,12 @@ function findSplit(el,body){
   if(!beyond(tm.total-1))return -1;
   let lo=0,hi=tm.total-1;while(lo<hi){const mid=(lo+hi)>>1;if(beyond(mid))hi=mid;else lo=mid+1;}
   if(lo===0)return null;
+  /* 孤字 / 孤行控制：翻页后只剩几个字的，把上一行一起带过去；只留一行在页尾的，整段搬走 */
+  const lineOf=i=>{const q=locate(tm,i);rng.setStart(q.node,q.off);rng.setEnd(q.node,Math.min(q.off+1,q.node.data.length));const rs=rng.getClientRects();if(!rs.length)return null;const r=rs[0];return G.v?(r.left+r.right)/2:(r.top+r.bottom)/2;};
+  const same=(a,b)=>a!=null&&b!=null&&Math.abs(a-b)<S.fs*(96/72)*view.z*0.6;
+  const MIN_TAIL=Math.min(6,Math.max(3,Math.round(G.N*0.12)));
+  if(tm.total-lo<MIN_TAIL){const L=lineOf(lo-1);let k=lo-1;while(k>0){const v=lineOf(k-1);if(v!=null&&!same(v,L))break;k--;}lo=k;if(lo===0)return null;}
+  if(!only&&same(lineOf(0),lineOf(lo-1)))return null;
   const p=locate(tm,lo);if(p.off>0&&/[\uDC00-\uDFFF]/.test(p.node.data[p.off]))p.off--;
   rng.setStart(p.node,p.off);
   for(let a=p.node.parentElement;a&&a!==el;a=a.parentElement)if(a.matches('ruby,.tcy'))rng.setStartBefore(a);
@@ -803,7 +809,7 @@ async function flow(root,blocks,kind,ctx){
     let guard=0;
     while(over(el,pg.body,tol)&&guard++<400){
       const only=pg.body.children.length===1;
-      const sp=(b.t==='p'||b.t==='after')?findSplit(el,pg.body):null;
+      const sp=(b.t==='p'||b.t==='after')?findSplit(el,pg.body,only):null;
       if(sp===-1)break;
       if(sp===null){
         if(only)break;                           // cannot shrink further: accept
